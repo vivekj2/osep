@@ -1,0 +1,16 @@
+cmd -> powershell
+
+Get-Process -name powershell 
+
+Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
+-------  ------    -----      -----     ------     --  -- -----------
+    697      36   117548     131916       1.13   1184   1 powershell
+
+1184
+
+cmd -> 
+frida-trace -p 1184 -x amsi.dll -i Amsi*
+
+'AmsiUtils' < Detected
+
+'Am'+'siUtils' < Not detected
