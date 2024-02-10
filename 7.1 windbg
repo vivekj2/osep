@@ -1,3 +1,21 @@
 #breakpoint to write function in notedpad
 
 bp kernel32!writefile 
+g
+
+#  all registers with the r
+
+# inspect individual registers by specifying the name
+r rax
+
+dd rsp  # 32bit
+dc rsp  # 32bit ascii
+dq rsp  # 64bit
+
+we could modify a memory location to force an execution path that could aid or speed up our analysis.
+dd rsp L1
+00000063`4c93e8c8  9a465c0e
+ed rsp 0
+
+dd rsp L1
+00000063`4c93e8c8  0
