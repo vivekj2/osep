@@ -1,0 +1,3 @@
+#breakpoint to write function in notedpad
+
+bp kernel32!writefile 
