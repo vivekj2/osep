@@ -11,6 +11,36 @@ Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  SI ProcessName
 cmd -> 
 frida-trace -p 1184 -x amsi.dll -i Amsi*
 
+# Change the code at C:\Users\Offsec\__handlers__\amsi.dll\AmsiScanBuffer.js
+# Change onenter and onclose function
+
+onEnter: function (log, args, state) {
+  log('[*] AmsiScanBuffer()');
+  log('|- amsiContext: ' + args[0]);
+  log('|- buffer: ' + Memory.readUtf16String(args[1]));
+  log('|- length: ' + args[2]);
+  log('|- contentName ' + args[3]);
+  log('|- amsiSession ' + args[4]);
+  log('|- result ' + args[5] + "\n");
+  this.resultPointer = args[5];
+},
+
+onLeave: function (log, retval, state) {
+  log('[*] AmsiScanBuffer() Exit');
+  resultPointer = this.resultPointer;
+  log('|- Result value is: ' + Memory.readUShort(resultPointer) + "\n");
+}
+
+# Result:
+157586 ms  AmsiOpenSession()
+157586 ms  [*] AmsiScanBuffer()
+157586 ms  |- amsiContext: 0x1984a3f7eb0
+157586 ms  |- buffer: test
+157586 ms  |- length: 0x8
+157586 ms  |- contentName 0x1984c47142c
+157586 ms  |- amsiSession 0x9
+157586 ms  |- result 0x40d144e958
+
 'AmsiUtils' < Detected
 
 'Am'+'siUtils' < Not detected
