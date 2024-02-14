@@ -1,0 +1,11 @@
+Test.js
+WScript.Sleep(30000);
+
+var WshShell = new ActiveXObject("WScript.Shell");
+WshShell.Run("calc")
+
+Open CMD and "C:\Tool\Sysinternal\procexe.exe"
+Note process id of wscript and execute frida.
+
+frida-trace -p 708 -x amsi.dll -i Amsi*
+
