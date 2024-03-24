@@ -5,6 +5,14 @@ Local Computer Policy -> Computer Configuration -> Windows Settings -> Security 
 Executable Rules
 -----------------------------------------------
 
-Check which folder has RW access:
+#Check which folder has RW access:
 
 accesschk.exe "student" C:\Windows -wus
+
+icacls.exe C:\Windows\Tasks
+
+--------------------------------------------
+
+rundll32  C:\Tools\TestDll.dll
+
+#Enablbe DLL execition from Applocker properties and copy our payhload to C:\windows\Tasks\TestDll.dll
