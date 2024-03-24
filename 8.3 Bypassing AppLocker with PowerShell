@@ -1,1 +1,10 @@
+# Check if Powershell is allowed to use full control 
+
+[Math]::Cos(1)
+$ExecutionContext.SessionState.LanguageMode
+
+---------------------------------------------------------------
+
+# Custom runspace
+
 
