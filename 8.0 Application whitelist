@@ -1,1 +1,5 @@
+gpedit.msc
 
+Local Computer Policy -> Computer Configuration -> Windows Settings -> Security Settings -> Application Control Policies
+
+Executable Rules
