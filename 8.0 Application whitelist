@@ -23,3 +23,12 @@ var shell = new ActiveXObject("WScript.Shell");
 var res = shell.Run("cmd.exe");
 
 wscript 
+
+-----------------------------------------------
+
+Third paty bypass
+
+echo print("This executed") > test.py
+python test.py
+
+
