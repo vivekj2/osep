@@ -1,0 +1,8 @@
+# We can try different techniques to access the bbrowser
+
+\\127.0.0.1\C$\Windows\System32\
+shell:System
+shell:Common
+shell:Downloads
+
+
