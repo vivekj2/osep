@@ -1,0 +1,5 @@
+vi .vimrc
+
+!touch /tmp/test.txt
+
+Save
