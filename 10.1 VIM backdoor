@@ -3,3 +3,17 @@ vi .vimrc
 !touch /tmp/test.txt
 
 Save
+
+vi
+
+----------------------------------------------
+
+Using vmscript -> vi .vmscript
+source ~/.vimscript OR :silent source ~/.vimscript
+
+vi .vmscript
+!/bin/bash
+echo "hacked" > /tmp/hacker.txt
+
+
+
