@@ -1,0 +1,8 @@
+# Integrity levels
+    Low - Low integrity is used with sandbox processes like web browsers
+    Medium- Applications executing in the context of a regular user run at medium integrity
+    High- administrators can execute applications at high integrity.
+    System- used for SYSTEM services
+
+Local administrators receive two access tokens when authenticating. first onfigured to create processes as medium integrity. 
+When a user selects the "Run as administrator" option for an application, the second elevated token is used instead, and allows the process to run at high integrity.
