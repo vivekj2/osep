@@ -1,0 +1,69 @@
+# MS SQL usually listen on port 1433 When a MS SQL server is running in the context of an Active Directory service account, it is normally associated with a Service Principal Name (SPN)
+    setspn -T corp1 -Q MSSQLSvc/*
+    MSSQLSvc/appsrv01.corp1.com:1433
+        MSSQLSvc/appsrv01.corp1.com:SQLEXPRESS
+        MSSQLSvc/DC01.corp1.com:1433
+        MSSQLSvc/DC01.corp1.com:SQLEXPRESS
+
+We can also use . .\GetUserSPNs.ps1 script to get the details. 
+
+There are 2 types of authetication used for SQL. 
+1.SQL server login or we can use Windows account-based authentication.
+2. Kerberos and allows any domain user to authenticate with a Ticket Granting Service (TGS) ticket.
+
+#we will create a C# program
+
+using System;
+using System.Data.SqlClient;
+
+namespace SQL
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            String sqlServer = "dc01.corp1.com";
+            String database = "master";
+
+            String conString = "Server = " + sqlServer + "; Database = " + database + "; Integrated Security = True;";
+            SqlConnection con = new SqlConnection(conString);
+            try
+            {
+                con.Open();
+                Console.WriteLine("Auth success!");
+            }
+            catch
+            {
+                Console.WriteLine("Auth failed");
+                Environment.Exit(0);
+            }
+            String querylogin = "SELECT SYSTEM_USER;";
+            SqlCommand command = new SqlCommand(querylogin, con);
+            SqlDataReader reader = command.ExecuteReader();
+            reader.Read();
+            Console.WriteLine("Logged in as: " + reader[0]);
+            reader.Close();
+
+            String querypublicrole = "SELECT IS_SRVROLEMEMBER('public');";
+            command = new SqlCommand(querypublicrole, con);
+            reader = command.ExecuteReader();
+            reader.Read();
+            Int32 role = Int32.Parse(reader[0].ToString());
+            if (role == 1)
+            {
+                Console.WriteLine("User is a member of public role");
+            }
+            else
+            {
+                Console.WriteLine("User is NOT a member of public role");
+            }
+            reader.Close();
+            con.Close();
+        }
+    }
+
+    }
+
+    \\192.168.45.214\visualstudio\MS SQL Enum\14. 1 MS SQL Enum\bin\x64\Release\14. 1 MS SQL Enum.exe
+
+
