@@ -1,0 +1,27 @@
+# we will perform enumeration from our current forest to users belonging to a trusted forest. The first enumeration step is to map out any forest trusts.
+    PS C:\tools> ([System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest()).GetAllTrustRelationships()
+          TopLevelNames            : {corp2.com}
+          ExcludedTopLevelNames    : {}
+          TrustedDomainInformation : {corp2.com}
+          SourceName               : corp1.com
+          TargetName               : corp2.com
+          TrustType                : Forest
+          TrustDirection           : Bidirectional
+
+# Once we have completed our enumeration of forest trust and subsequent child domain trusts, we can start enumerating users, groups, and more in the trusted forest.
+    PS C:\tools> Get-DomainUser -Domain corp2.com
+
+# One simple approach is to search for users with the same username in both forests as they might belong to the same employee. If such an account exists, there is a chance that the accounts share a password, which could grant us access.
+
+# We can use the PowerView Get-DomainForeignGroupMember method to enumerate groups in a trusted forest or domain that contains non-native members.
+
+    PS C:\tools> Get-DomainForeignGroupMember -Domain corp2.com
+          GroupDomain             : corp2.com
+          GroupName               : myGroup2
+          GroupDistinguishedName  : CN=myGroup2,OU=corp2Groups,DC=corp2,DC=com
+          MemberDomain            : corp2.com
+          MemberName              : S-1-5-21-634106289-3621871093-708134407-1110
+          MemberDistinguishedName : CN=S-1-5-21-634106289-3621871093-708134407-1110,CN=ForeignSecurityPrincipals,DC=corp2,DC=com
+
+    PS C:\Tools> ConvertFrom-sid S-1-5-21-634106289-3621871093-708134407-1110
+          PROD\dave   (Dave user is common user)
