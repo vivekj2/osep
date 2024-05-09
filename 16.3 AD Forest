@@ -1,0 +1,20 @@
+# our first goal is to determine if the domain we have compromised is part of a larger Active Directory infrastructure, and if it is, we should enumerate available trusts.
+
+    PS> Tools\ nltest /trusted_domains
+      0: CORP1 corp1.com (NT 5) (Forest Tree Root) (Direct Outbound) (Direct Inbound) ( Attr: withinforest )
+      1: PROD prod.corp1.com (NT 5) (Forest: 0) (Primary Domain) (Native)
+
+# Instead of using the nltest command line utility, we can also enumerate this information with .NET, with Win32 APIs, or with LDAP. 
+
+    PS> ([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).GetAllTrustRelationships()
+    SourceName     TargetName   TrustType TrustDirection
+    ----------     ----------   --------- --------------
+    prod.corp1.com corp1.com  ParentChild  Bidirectional
+
+# We can also use the Win32 DsEnumerateDomainTrusts3 API.
+
+   PS>  Get-DomainTrust -API
+
+# Fuerther we cab enumerate lots of data from the domain 
+
+Get-DomainUser -Domain corp1.com
