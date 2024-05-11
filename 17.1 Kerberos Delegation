@@ -44,3 +44,5 @@
       PS C:\Tools> dir \\files02\home$\james
 
       (After injecting the ticket, we are able to read the home folder for james, which is stored on a different server.)
+
+In the actual lab we logged in into Files01 server, and grabbed the ticket. The answer to first VM01 was KDC
