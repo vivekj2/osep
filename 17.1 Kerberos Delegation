@@ -44,5 +44,12 @@
       PS C:\Tools> dir \\files02\home$\james
 
       (After injecting the ticket, we are able to read the home folder for james, which is stored on a different server.)
+--------------------------------------------------------------------------------------------------------------------------------
+VM01: In the actual lab we logged in into Files01 server, and grabbed the ticket. The answer to first VM01 was KDC
 
-In the actual lab we logged in into Files01 server, and grabbed the ticket. The answer to first VM01 was KDC
+VM01: 
+        Get-DomainComputer -Unconstrained
+        useraccountcontrol            : SERVER_TRUST_ACCOUNT, TRUSTED_FOR_DELEGATION
+        name                          : SQL01
+        dnshostname                   : SQL01.corp.com
+
