@@ -1,0 +1,6 @@
+# log in with the adam user on CLIENT01 and use PowerView 
+
+    Get-DomainUser -TrustedToAuth
+      samaccountname           : iissvc
+      msds-allowedtodelegateto : {MSSQLSvc/sql01.corp.com:SQLEXPRESS, MSSQLSvc/sql01.corp.com:1433}
+      useraccountcontrol       : NORMAL_ACCOUNT, DONT_EXPIRE_PASSWORD, TRUSTED_TO_AUTH_FOR_DELEGATION
