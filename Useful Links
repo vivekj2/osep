@@ -1,4 +1,4 @@
 
-# bloodhound-python -u offsec -p lab -ns 192.168.215.75 -d prod.corp.com -C All
+# bloodhound-python -u offsec -p lab -ns 192.168.215.75 -d prod.corp.com -c All
 
 # evil-winrm -i  192.168.215.75 -u offsec -p lab
