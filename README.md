@@ -4,6 +4,18 @@
 
  netstat -tulpn
 
+use multi/manage/autoroute
+set session 1
+exploit
+use auxiliary/server/socks_proxy
+set version 4a
+set srvhost 127.0.0.1
+exploit -j
+
+bash -c 'echo "socks4 127.0.0.1 1080" >> /etc/proxychains.conf'
+
+proxychains rdesktop 192.168.1.1
+
 <br>
 
 #### Compiled by: **purg3**
